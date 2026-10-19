@@ -1,74 +1,158 @@
 import Link from "next/link"
 
-import { Badge } from "@/components/ui/badge"
+import { DoctorCard } from "@/components/doctors/doctor-card"
+import { FacilityCard } from "@/components/facilities/facility-card"
+import { JsonLd } from "@/components/seo/json-ld"
+import { createPageMetadata } from "@/components/seo/page-meta"
+import { websiteJsonLd } from "@/components/seo/schemas"
+import { SearchForm } from "@/components/search/search-form"
 import { buttonVariants } from "@/components/ui/button"
+import { GlassCard } from "@/components/ui/glass-card"
+import { getSearchOptions } from "@/lib/content/catalog"
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  placeholderArticles,
+  placeholderDoctors,
+  placeholderFacilities,
+} from "@/lib/content/placeholders"
+import { getFeaturedDoctors } from "@/lib/supabase/queries"
+import { safeQuery } from "@/lib/supabase/safe"
+import { siteConfig } from "@/lib/site"
 
-const sections = [
-  {
-    title: "Лекари",
-    description: "Профили, специалности и контакт.",
-    href: "/dashboard",
-  },
-  {
-    title: "Лечебни заведения",
-    description: "Болници, клиники и практики.",
-    href: "/dashboard",
-  },
-  {
-    title: "Търсене",
-    description: "Филтри по град, специалност и име.",
-    href: "/dashboard",
-  },
-]
+export const metadata = createPageMetadata({
+  title: "Здравен справочник – лекари и лечебни заведения",
+  description: siteConfig.description,
+  path: "/",
+  absoluteTitle: true,
+})
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [{ specialties, cities }, featuredDoctors] = await Promise.all([
+    getSearchOptions(),
+    safeQuery(getFeaturedDoctors, []),
+  ])
+  const doctors = featuredDoctors.slice(0, 3)
+  const specialtyCards = specialties.slice(0, 8)
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center gap-10 px-6 py-16">
-      <div className="flex max-w-2xl flex-col gap-4">
-        <Badge variant="secondary" className="w-fit">
-          Здравен справочник
-        </Badge>
-        <h1 className="text-4xl font-semibold tracking-tight text-balance">
-          Лекари и лечебни заведения на едно място
-        </h1>
-        <p className="text-muted-foreground">
-          Публичната част, входът, таблото и администрацията са отделени.
-          Темата по подразбиране е светла.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/login" className={buttonVariants()}>
-            Вход
-          </Link>
-          <Link
-            href="/dashboard"
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Табло
-          </Link>
-          <Link href="/admin" className={buttonVariants({ variant: "ghost" })}>
-            Админ
-          </Link>
+    <main>
+      <JsonLd data={websiteJsonLd()} />
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 pt-12 pb-6 sm:pt-20 sm:pb-10">
+        <div className="max-w-3xl">
+          <p className="text-sm font-medium text-primary">България</p>
+          <h1 className="mt-3">Намерете лекаря, от който имате нужда</h1>
+          <p className="mt-4 max-w-2xl text-muted-foreground">
+            Търсете по специалност, град или име. Профилите пазят старите адреси
+            и са готови за споделяне.
+          </p>
+          <a href="#specialnosti" className={buttonVariants({ variant: "primary", className: "mt-6 w-fit" })}>
+            Специалности
+          </a>
         </div>
-      </div>
+        <SearchForm specialties={specialties} cities={cities} />
+      </section>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {sections.map((section) => (
-          <Link key={section.title} href={section.href}>
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>{section.title}</CardTitle>
-                <CardDescription>{section.description}</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-        ))}
-      </div>
+      <section
+        id="specialnosti"
+        className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-12 sm:py-16"
+        aria-labelledby="specialties-heading"
+      >
+        <div className="max-w-2xl">
+          <h2 id="specialties-heading">Най-търсени специалности</h2>
+          <p className="mt-2 text-muted-foreground">
+            Изберете направление и вижте специалистите в него.
+          </p>
+        </div>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {specialtyCards.map((specialty) => (
+            <li key={specialty.slug}>
+              <Link
+                href={`/category/specialisti/${specialty.slug}`}
+                className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                <GlassCard className="h-full">
+                  <h3>{specialty.name}</h3>
+                  {"description" in specialty && specialty.description ? (
+                    <p className="mt-2 text-sm text-muted-foreground">{specialty.description}</p>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted-foreground">Вижте специалистите</p>
+                  )}
+                </GlassCard>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section
+        className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-12 sm:py-16"
+        aria-labelledby="doctors-heading"
+      >
+        <div className="max-w-2xl">
+          <h2 id="doctors-heading">Препоръчани лекари</h2>
+          <p className="mt-2 text-muted-foreground">
+            Подбрани профили. Празният справочник показва примери, докато се публикуват реални лекари.
+          </p>
+        </div>
+        <ul className="grid gap-4 md:grid-cols-3">
+          {doctors.length > 0
+            ? doctors.map((doctor) => (
+                <li key={doctor.id}>
+                  <DoctorCard doctor={doctor} />
+                </li>
+              ))
+            : placeholderDoctors.map((doctor) => (
+                <li key={doctor.full_name}>
+                  <DoctorCard doctor={{ ...doctor, example: true }} />
+                </li>
+              ))}
+        </ul>
+      </section>
+
+      <section
+        className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-12 sm:py-16"
+        aria-labelledby="facilities-heading"
+      >
+        <div className="max-w-2xl">
+          <h2 id="facilities-heading">Лечебни заведения</h2>
+          <p className="mt-2 text-muted-foreground">
+            Клиники и практики, които ще се появят с публикуването на профилите.
+          </p>
+        </div>
+        <ul className="grid gap-4 md:grid-cols-3">
+          {placeholderFacilities.map((facility) => (
+            <li key={facility.name}>
+              <FacilityCard facility={{ ...facility, example: true }} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section
+        id="statii"
+        className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-12 pb-20 sm:py-16"
+        aria-labelledby="articles-heading"
+      >
+        <div className="max-w-2xl">
+          <h2 id="articles-heading">Последни статии</h2>
+          <p className="mt-2 text-muted-foreground">
+            Кратки ориентири преди посещение при специалист.
+          </p>
+        </div>
+        <ul className="grid gap-4 md:grid-cols-3">
+          {placeholderArticles.map((article) => (
+            <li key={article.title}>
+              <GlassCard className="flex h-full flex-col gap-3">
+                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                  Пример
+                </p>
+                <h3>{article.title}</h3>
+                <p className="text-sm text-muted-foreground">{article.excerpt}</p>
+                <p className="mt-auto text-sm text-muted-foreground">{article.date}</p>
+              </GlassCard>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   )
 }
