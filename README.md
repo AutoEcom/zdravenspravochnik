@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Здравен справочник
 
-## Getting Started
+Next.js 15 приложение с App Router, TypeScript, Tailwind CSS и ESLint. Темата по подразбиране е светла. Тъмната палитра е подготвена за по-късно през `next-themes`.
 
-First, run the development server:
+## Изисквания
+
+- Node.js 20 или по-нова версия
+- npm
+- Supabase проект
+
+## Стартиране
+
+1. Инсталирайте зависимостите:
+
+```bash
+npm install
+```
+
+2. Копирайте примерния файл с променливи:
+
+```bash
+copy .env.local.example .env.local
+```
+
+3. Попълнете стойностите в `.env.local`:
+
+| Променлива | Къде се ползва |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Публичен адрес на Supabase проекта |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Публичен anon ключ за браузър и сървър |
+| `SUPABASE_SERVICE_ROLE_KEY` | Само на сървъра. Не го излагайте в клиентски код |
+| `NEXT_PUBLIC_SITE_URL` | Адрес на приложението. Локално: `http://localhost:3000` |
+
+Без URL и anon ключ приложението се отваря, но middleware не опреснява сесия.
+
+4. Стартирайте dev сървъра:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Отворете [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Скриптове
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+```
 
-## Learn More
+## Структура
 
-To learn more about Next.js, take a look at the following resources:
+```text
+app/(public)          публични страници
+app/(auth)            вход
+app/dashboard         табло
+app/admin             администрация
+components/ui         shadcn/ui
+components/doctors
+components/facilities
+components/search
+lib/supabase          browser, server и session middleware
+types
+supabase/migrations
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Supabase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Клиентите следват официалния модел за Next.js 15:
 
-## Deploy on Vercel
+- `lib/supabase/client.ts` — браузър (`createBrowserClient`)
+- `lib/supabase/server.ts` — Server Components, Server Actions и Route Handlers
+- `lib/supabase/middleware.ts` — `updateSession`, който вика `supabase.auth.getClaims()`
+- `middleware.ts` в корена — Next.js 15 вика този файл. В Next.js 16 същото се казва `proxy.ts`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+SQL миграциите стоят в `supabase/migrations`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Интерфейс
+
+shadcn/ui е инициализиран с настройките по подразбиране (`base-nova`). Добавени са button, card, input, select, dialog, dropdown-menu, tabs, avatar, badge, skeleton, sonner, label и field.
+
+В текущия регистър записът `form` е празен. `components/ui/form.tsx` е React Hook Form обвивката (`Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`), а `components/ui/field.tsx` е актуалният layout компонент от shadcn.
+
+Основният цвят е teal. Класът `glass` дава полупрозрачен фон с blur.
