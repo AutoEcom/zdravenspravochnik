@@ -8,7 +8,7 @@ function GlassCard({
   children,
   ...props
 }: React.ComponentProps<"div"> & {
-  variant?: "default" | "strong"
+  variant?: "default" | "strong" | "panel"
 }) {
   return (
     <div
@@ -16,7 +16,7 @@ function GlassCard({
       data-variant={variant}
       className={cn(
         "rounded-2xl p-4 text-card-foreground sm:p-6",
-        variant === "strong" ? "glass-strong" : "glass",
+        variant === "strong" ? "glass-strong" : variant === "panel" ? "glass-panel" : "glass",
         className
       )}
       {...props}

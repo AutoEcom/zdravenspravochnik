@@ -20,7 +20,7 @@ type SearchFormProps = {
 
 export function SearchForm({ specialties, cities, defaults }: SearchFormProps) {
   return (
-    <form action="/search" className="glass grid gap-3 rounded-2xl p-4 sm:p-6 lg:grid-cols-[1fr_1fr_1.3fr_auto] lg:items-end">
+    <form action="/search" className="glass-panel grid gap-3 p-4 sm:p-6 lg:grid-cols-[1fr_1fr_1.3fr_auto] lg:items-end">
       <label className="grid gap-2 text-sm font-medium" htmlFor="search-specialty">
         Специалност
         <select

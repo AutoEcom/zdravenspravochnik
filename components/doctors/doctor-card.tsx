@@ -23,7 +23,7 @@ export type DoctorSummary = {
 
 export function DoctorCard({ doctor }: { doctor: DoctorSummary }) {
   const body = (
-    <GlassCard className="flex h-full flex-col gap-3">
+    <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">
       <div className="flex flex-wrap gap-2">
         {doctor.example ? <Badge variant="secondary">Пример</Badge> : null}
         {doctor.isPremium ? <Badge variant="accent">Премиум</Badge> : null}
@@ -55,7 +55,7 @@ export function DoctorCard({ doctor }: { doctor: DoctorSummary }) {
   return (
     <Link
       href={`/${doctor.slug}`}
-      className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+      className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
     >
       {body}
     </Link>

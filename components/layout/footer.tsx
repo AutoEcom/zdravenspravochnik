@@ -4,8 +4,10 @@ const links = [
   { href: "/", label: "Начало" },
   { href: "/search", label: "Специалисти" },
   { href: "/search?kind=facility", label: "Заведения" },
+  { href: "/jensko-zdrave", label: "Женско здраве" },
   { href: "/#statii", label: "Статии" },
-  { href: "/search", label: "Търсене" },
+  { href: "/za-nas", label: "За нас" },
+  { href: "/kontakti", label: "Контакти" },
   { href: "/login", label: "Вход" },
 ]
 
@@ -16,8 +18,11 @@ export function Footer() {
     <footer className="mt-8 border-t border-slate-200/70">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-[1.4fr_1fr]">
         <div className="max-w-md">
-          <p className="text-base font-semibold">
-            <span className="text-primary">Здравен</span> справочник
+          <p className="flex flex-col leading-none">
+            <span className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+              Здравен
+            </span>
+            <span className="text-lg font-semibold text-primary">справочник</span>
           </p>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Справочник на лекари и лечебни заведения в България.

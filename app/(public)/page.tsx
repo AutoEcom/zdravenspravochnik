@@ -19,6 +19,15 @@ import { getFeaturedDoctors, getFeaturedFacilities, getPublishedArticles } from 
 import { safeQuery } from "@/lib/supabase/safe"
 import { siteConfig } from "@/lib/site"
 
+function evenGridClass(count: number) {
+  if (count > 1 && count % 2 === 0 && count % 3 !== 0) {
+    return "grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+  }
+  if (count >= 3) return "grid gap-4 md:grid-cols-3"
+  if (count === 2) return "grid gap-4 sm:grid-cols-2"
+  return "grid gap-4"
+}
+
 export const metadata = createPageMetadata({
   title: "Здравен справочник – лекари и лечебни заведения",
   description: siteConfig.description,
@@ -71,9 +80,9 @@ export default async function HomePage() {
             <li key={specialty.slug}>
               <Link
                 href={`/category/specialisti/${specialty.slug}`}
-                className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
-                <GlassCard className="h-full">
+                <GlassCard variant="panel" className="h-full transition-shadow duration-200 group-hover:shadow-md">
                   <h3>{specialty.name}</h3>
                   {"description" in specialty && specialty.description ? (
                     <p className="mt-2 text-sm text-muted-foreground">{specialty.description}</p>
@@ -99,7 +108,7 @@ export default async function HomePage() {
               : "Празният справочник показва примери, докато се публикуват реални лекари."}
           </p>
         </div>
-        <ul className="grid gap-4 md:grid-cols-3">
+        <ul className={evenGridClass(doctors.length > 0 ? doctors.length : placeholderDoctors.length)}>
           {doctors.length > 0
             ? doctors.map((doctor) => (
                 <li key={doctor.slug ?? doctor.full_name}>
@@ -126,7 +135,7 @@ export default async function HomePage() {
               : "Клиники и практики, които ще се появят с публикуването на профилите."}
           </p>
         </div>
-        <ul className="grid gap-4 md:grid-cols-3">
+        <ul className={evenGridClass(facilities.length > 0 ? facilities.length : placeholderFacilities.length)}>
           {facilities.length > 0
             ? facilities.map((facility) => (
                 <li key={facility.slug ?? facility.name}>
@@ -158,9 +167,9 @@ export default async function HomePage() {
                 <li key={article.slug}>
                   <Link
                     href={`/${article.slug}`}
-                    className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                    className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
-                    <GlassCard className="flex h-full flex-col gap-3">
+                    <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">
                       <h3>{article.title}</h3>
                       {article.excerpt ? <p className="text-sm text-muted-foreground">{article.excerpt}</p> : null}
                       <p className="mt-auto text-sm text-muted-foreground">{formatBgDate(article.published_at)}</p>
@@ -170,7 +179,7 @@ export default async function HomePage() {
               ))
             : placeholderArticles.map((article) => (
                 <li key={article.title}>
-                  <GlassCard className="flex h-full flex-col gap-3">
+                  <GlassCard variant="panel" className="flex h-full flex-col gap-3">
                     <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Пример</p>
                     <h3>{article.title}</h3>
                     <p className="text-sm text-muted-foreground">{article.excerpt}</p>

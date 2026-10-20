@@ -1,6 +1,4 @@
-type JsonLdData = Record<string, unknown>
-
-export function JsonLd({ data }: { data: JsonLdData | JsonLdData[] }) {
+export function JsonLd({ data }: { data: object | object[] }) {
   const json = JSON.stringify(data).replace(/</g, "\\u003c")
 
   return (

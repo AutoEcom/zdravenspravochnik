@@ -6,9 +6,10 @@ import { FacilityCard, type FacilitySummary } from "@/components/facilities/faci
 import { OpeningHours } from "@/components/profiles/opening-hours"
 import { PlaceCard } from "@/components/profiles/place-card"
 import { ProfileActions } from "@/components/profiles/profile-actions"
+import { ProfileFaq } from "@/components/profiles/profile-faq"
 import { ReviewsNote } from "@/components/profiles/reviews-note"
 import { JsonLd } from "@/components/seo/json-ld"
-import { medicalClinicJsonLd } from "@/components/seo/schemas"
+import { breadcrumbJsonLd, faqPageJsonLd, medicalClinicJsonLd } from "@/components/seo/schemas"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
 import { facilityTypeLabel, namesFor, reviewLabel, type NamedSlug } from "@/lib/content/present"
@@ -41,14 +42,21 @@ export function FacilityProfile({
   const cityNames = namesFor(facility.cities, cities)
   const locality = facility.cities[0] ? cities.find((city) => city.slug === facility.cities[0])?.name : undefined
   const kind = facilityTypeLabel(facility.facility_type, facility.name)
+  const faqs = facilityFaqs(facility, specialtyNames, locality, kind)
+  const crumbs = [
+    { name: "Начало", path: "/" },
+    { name: "Заведения", path: "/search?kind=facility" },
+    { name: facility.name, path: `/${facility.slug}` },
+  ]
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 pb-28 sm:py-14 md:pb-16">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 pb-36 sm:py-14 md:pb-16">
       <JsonLd
-        data={medicalClinicJsonLd(facility, {
-          specialties: specialtyNames,
-          locality,
-        })}
+        data={[
+          medicalClinicJsonLd(facility, { specialties: specialtyNames, locality }),
+          breadcrumbJsonLd(crumbs),
+          faqPageJsonLd(faqs),
+        ]}
       />
 
       <GlassCard variant="strong" className="flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -129,20 +137,67 @@ export function FacilityProfile({
 
       <ReviewsNote rating={facility.rating} count={facility.review_count} />
 
-      <section className="flex flex-col gap-4" aria-labelledby="related-facilities">
-        <h2 id="related-facilities">Други заведения в {locality ?? "града"}</h2>
-        {related.length > 0 ? (
-          <ul className="grid gap-4 md:grid-cols-3">
+      {related.length > 0 ? (
+        <section className="flex flex-col gap-4" aria-labelledby="related-facilities">
+          <h2 id="related-facilities">Други заведения в {locality ?? "града"}</h2>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((item) => (
               <li key={item.slug ?? item.name}>
                 <FacilityCard facility={item} />
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="text-muted-foreground">Няма други публикувани заведения в този град.</p>
-        )}
-      </section>
+        </section>
+      ) : null}
+
+      <ProfileFaq items={faqs} />
     </main>
   )
+}
+
+function facilityFaqs(
+  facility: Facility,
+  specialtyNames: string[],
+  locality: string | undefined,
+  kind: string
+) {
+  const place = locality ?? "България"
+  const specs = specialtyNames.filter(Boolean).join(", ")
+  const contact = [
+    facility.phone ? `обадете се на ${facility.phone}` : null,
+    facility.email ? `пишете на ${facility.email}` : null,
+  ].filter(Boolean)
+
+  return [
+    {
+      question: `Как да запиша час в ${facility.name}?`,
+      answer: contact.length
+        ? `За час ${contact.join(" или ")}. Регистратурата потвърждава часа и нужните документи.`
+        : "Контактът на регистратурата е посочен в профила, когато е публикуван.",
+    },
+    {
+      question: "Приемат ли се направления по НЗОК?",
+      answer: facility.accepts_nhif
+        ? "Да. Заведението приема направления по НЗОК. Носете направлението и документ за самоличност."
+        : "В профила няма отметка за прием по НЗОК. Уточнете плащането при записване.",
+    },
+    {
+      question: "Подходящо ли е за деца?",
+      answer: facility.accepts_children
+        ? "Да. Профилът е отбелязан, че приема деца."
+        : "Профилът не е отбелязан за деца. Попитайте регистратурата преди записване.",
+    },
+    {
+      question: `Какви специалисти има в ${kind.toLowerCase()}?`,
+      answer: specs
+        ? `Публикуваните направления са: ${specs}.`
+        : "Списъкът със специалности се допълва с публикуването на кабинетите.",
+    },
+    {
+      question: `Къде се намира в ${place}?`,
+      answer: facility.address
+        ? `Адресът е ${facility.address}.`
+        : `Заведението е в ${place}. Точният адрес се потвърждава при записване.`,
+    },
+  ]
 }

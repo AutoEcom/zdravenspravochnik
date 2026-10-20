@@ -6,9 +6,10 @@ import { DoctorCard, type DoctorSummary } from "@/components/doctors/doctor-card
 import { OpeningHours } from "@/components/profiles/opening-hours"
 import { PlaceCard } from "@/components/profiles/place-card"
 import { ProfileActions } from "@/components/profiles/profile-actions"
+import { ProfileFaq } from "@/components/profiles/profile-faq"
 import { ReviewsNote } from "@/components/profiles/reviews-note"
 import { JsonLd } from "@/components/seo/json-ld"
-import { physicianJsonLd } from "@/components/seo/schemas"
+import { breadcrumbJsonLd, faqPageJsonLd, physicianJsonLd } from "@/components/seo/schemas"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
 import { displayName, namesFor, reviewLabel, type NamedSlug } from "@/lib/content/present"
@@ -40,14 +41,23 @@ export function DoctorProfile({
   const specialtyNames = namesFor(doctor.specialties, specialties)
   const cityNames = namesFor(doctor.cities, cities)
   const locality = doctor.cities[0] ? cities.find((city) => city.slug === doctor.cities[0])?.name : undefined
+  const faqs = doctorFaqs(doctor, specialtyNames, locality)
+  const crumbs = [
+    { name: "Начало", path: "/" },
+    doctor.specialties[0]
+      ? { name: specialtyNames[0] ?? "Специалисти", path: `/category/specialisti/${doctor.specialties[0]}` }
+      : { name: "Специалисти", path: "/search" },
+    { name, path: `/${doctor.slug}` },
+  ]
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 pb-28 sm:py-14 md:pb-16">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 pb-36 sm:py-14 md:pb-16">
       <JsonLd
-        data={physicianJsonLd(doctor, {
-          specialties: specialtyNames,
-          locality,
-        })}
+        data={[
+          physicianJsonLd(doctor, { specialties: specialtyNames, locality }),
+          breadcrumbJsonLd(crumbs),
+          faqPageJsonLd(faqs),
+        ]}
       />
 
       <GlassCard variant="strong" className="flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -141,20 +151,67 @@ export function DoctorProfile({
 
       <ReviewsNote rating={doctor.rating} count={doctor.review_count} />
 
-      <section className="flex flex-col gap-4" aria-labelledby="related-doctors">
-        <h2 id="related-doctors">Други специалисти в {locality ?? "града"}</h2>
-        {related.length > 0 ? (
-          <ul className="grid gap-4 md:grid-cols-3">
+      {related.length > 0 ? (
+        <section className="flex flex-col gap-4" aria-labelledby="related-doctors">
+          <h2 id="related-doctors">Други специалисти в {locality ?? "града"}</h2>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((item) => (
               <li key={item.slug ?? item.full_name}>
                 <DoctorCard doctor={item} />
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="text-muted-foreground">Няма други публикувани профили в този град.</p>
-        )}
-      </section>
+        </section>
+      ) : null}
+
+      <ProfileFaq items={faqs} />
     </main>
   )
+}
+
+function doctorFaqs(
+  doctor: Doctor,
+  specialtyNames: string[],
+  locality?: string
+) {
+  const name = displayName(doctor.title, doctor.full_name)
+  const place = locality ?? "България"
+  const specs = specialtyNames.filter(Boolean).join(", ")
+  const contact = [
+    doctor.phone ? `обадете се на ${doctor.phone}` : null,
+    doctor.email ? `пишете на ${doctor.email}` : null,
+  ].filter(Boolean)
+
+  return [
+    {
+      question: `Как да запиша час при ${name}?`,
+      answer: contact.length
+        ? `За час ${contact.join(" или ")}. Потвърдете часа преди посещението.`
+        : "Контактът за записване е посочен в профила, когато е публикуван.",
+    },
+    {
+      question: `${name} работи ли с НЗОК?`,
+      answer: doctor.accepts_nhif
+        ? "Да. Профилът приема направления по НЗОК. Носете направлението и документ за самоличност."
+        : "В профила няма отметка за прием по НЗОК. Уточнете начина на плащане при записване.",
+    },
+    {
+      question: "Преглеждат ли се деца?",
+      answer: doctor.accepts_children
+        ? "Да. Профилът е отбелязан за преглед на деца."
+        : "Профилът не е отбелязан за детски прегледи. Попитайте преди записване, ако пациентът е дете.",
+    },
+    {
+      question: "Има ли онлайн консултация?",
+      answer: doctor.online_consultation
+        ? "Да. Предлага се онлайн консултация. Форматът се уточнява при записване."
+        : "Онлайн консултация не е отбелязана. Прегледите са на място.",
+    },
+    {
+      question: `Къде е кабинетът в ${place}?`,
+      answer: doctor.address
+        ? `Адресът е ${doctor.address}.${specs ? ` Прегледите са по ${specs}.` : ""}`
+        : `Профилът е за ${place}. Точният адрес се потвърждава при записване.`,
+    },
+  ]
 }

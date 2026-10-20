@@ -168,6 +168,15 @@
   backdrop-filter: blur(24px);
 }
 
+@utility glass-panel {
+  background-color: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: 1.5rem;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 0.08);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

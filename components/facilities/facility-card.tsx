@@ -22,7 +22,7 @@ export type FacilitySummary = {
 
 export function FacilityCard({ facility }: { facility: FacilitySummary }) {
   const body = (
-    <GlassCard className="flex h-full flex-col gap-3">
+    <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">
       <div className="flex flex-wrap gap-2">
         {facility.example ? <Badge variant="secondary">Пример</Badge> : null}
         {facility.acceptsNhif ? <Badge>НЗОК</Badge> : null}
@@ -53,7 +53,7 @@ export function FacilityCard({ facility }: { facility: FacilitySummary }) {
   return (
     <Link
       href={`/${facility.slug}`}
-      className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+      className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
     >
       {body}
     </Link>

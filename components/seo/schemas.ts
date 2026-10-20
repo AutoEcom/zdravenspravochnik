@@ -13,6 +13,35 @@ function defined<T extends Record<string, unknown>>(value: T) {
   )
 }
 
+function services(names: string[]) {
+  return names.map((name) => ({
+    "@type": "MedicalProcedure",
+    name: `Консултация по ${name.toLowerCase()}`,
+  }))
+}
+
+function mapLink(address: string | null) {
+  if (!address) return undefined
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+}
+
+function areaServed(locality?: string) {
+  return locality
+    ? { "@type": "City", name: locality }
+    : { "@type": "Country", name: "България" }
+}
+
+function contactPoint(phone: string | null) {
+  if (!phone) return undefined
+  return {
+    "@type": "ContactPoint",
+    telephone: phone,
+    contactType: "reservations",
+    availableLanguage: ["bg"],
+    areaServed: "BG",
+  }
+}
+
 export function websiteJsonLd() {
   return {
     "@context": "https://schema.org",
@@ -38,18 +67,27 @@ export function physicianJsonLd(
 ) {
   const name = [doctor.title, doctor.full_name].filter(Boolean).join(" ")
   const specialties = labels?.specialties?.length ? labels.specialties : doctor.specialties
-  const hours = openingHoursSpecification(doctor.working_hours)
+  const pageUrl = absoluteUrl(`/${doctor.slug}`)
 
   return defined({
     "@context": "https://schema.org",
     "@type": "Physician",
+    "@id": `${pageUrl}#physician`,
     name,
-    url: absoluteUrl(`/${doctor.slug}`),
+    honorificPrefix: doctor.title,
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
     description: doctor.short_description || doctor.bio,
     image: doctor.photo_url,
     telephone: doctor.phone,
     email: doctor.email,
+    knowsLanguage: "bg",
     medicalSpecialty: specialties,
+    availableService: services(specialties),
+    paymentAccepted: doctor.accepts_nhif ? "НЗОК" : undefined,
+    areaServed: areaServed(labels?.locality),
+    contactPoint: contactPoint(doctor.phone),
+    hasMap: mapLink(doctor.address),
     address: doctor.address
       ? {
           "@type": "PostalAddress",
@@ -58,7 +96,7 @@ export function physicianJsonLd(
           addressCountry: "BG",
         }
       : undefined,
-    openingHoursSpecification: hours,
+    openingHoursSpecification: openingHoursSpecification(doctor.working_hours),
     aggregateRating:
       doctor.review_count > 0
         ? {
@@ -77,18 +115,26 @@ export function medicalClinicJsonLd(
   labels?: { specialties?: string[]; locality?: string }
 ) {
   const specialties = labels?.specialties?.length ? labels.specialties : facility.specialties
-  const hours = openingHoursSpecification(facility.working_hours)
+  const pageUrl = absoluteUrl(`/${facility.slug}`)
 
   return defined({
     "@context": "https://schema.org",
     "@type": "MedicalClinic",
+    "@id": `${pageUrl}#clinic`,
     name: facility.name,
-    url: absoluteUrl(`/${facility.slug}`),
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
     description: facility.short_description || facility.description,
     image: facility.photo_url,
     telephone: facility.phone,
     email: facility.email,
+    availableLanguage: ["bg"],
     medicalSpecialty: specialties,
+    availableService: services(specialties),
+    paymentAccepted: facility.accepts_nhif ? "НЗОК" : undefined,
+    areaServed: areaServed(labels?.locality),
+    contactPoint: contactPoint(facility.phone),
+    hasMap: mapLink(facility.address),
     address: facility.address
       ? {
           "@type": "PostalAddress",
@@ -97,7 +143,7 @@ export function medicalClinicJsonLd(
           addressCountry: "BG",
         }
       : undefined,
-    openingHoursSpecification: hours,
+    openingHoursSpecification: openingHoursSpecification(facility.working_hours),
     aggregateRating:
       facility.review_count > 0
         ? {
@@ -109,4 +155,32 @@ export function medicalClinicJsonLd(
           }
         : undefined,
   })
+}
+
+export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  }
+}
+
+export function faqPageJsonLd(items: { question: string; answer: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  }
 }

@@ -82,10 +82,18 @@ export async function generateMetadata({
         ? match.facility.name
         : match.article.title
 
+  const image =
+    match.kind === "doctor"
+      ? match.doctor.photo_url
+      : match.kind === "facility"
+        ? match.facility.photo_url
+        : match.article.cover_url
+
   return createPageMetadata({
     title,
     description: descriptionFor(match),
     path: `/${slug}`,
+    image,
   })
 }
 
