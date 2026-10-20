@@ -5,6 +5,7 @@ import { createPageMetadata } from "@/components/seo/page-meta"
 import { SearchForm } from "@/components/search/search-form"
 import { getSearchOptions } from "@/lib/content/catalog"
 import { catalogName } from "@/lib/content/placeholders"
+import { presentDoctor } from "@/lib/content/present"
 import { getDoctorsBySpecialtyAndCity } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
 
@@ -77,7 +78,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <ul className="grid gap-4 md:grid-cols-3">
             {doctors.map((doctor) => (
               <li key={doctor.id}>
-                <DoctorCard doctor={doctor} />
+                <DoctorCard doctor={presentDoctor(doctor, specialties, cities)} />
               </li>
             ))}
           </ul>

@@ -14,7 +14,8 @@ import {
   placeholderDoctors,
   placeholderFacilities,
 } from "@/lib/content/placeholders"
-import { getFeaturedDoctors } from "@/lib/supabase/queries"
+import { formatBgDate, presentDoctor, presentFacility } from "@/lib/content/present"
+import { getFeaturedDoctors, getFeaturedFacilities, getPublishedArticles } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
 import { siteConfig } from "@/lib/site"
 
@@ -26,11 +27,14 @@ export const metadata = createPageMetadata({
 })
 
 export default async function HomePage() {
-  const [{ specialties, cities }, featuredDoctors] = await Promise.all([
+  const [{ specialties, cities }, featuredDoctors, featuredFacilities, articles] = await Promise.all([
     getSearchOptions(),
     safeQuery(getFeaturedDoctors, []),
+    safeQuery(getFeaturedFacilities, []),
+    safeQuery(() => getPublishedArticles(3), []),
   ])
-  const doctors = featuredDoctors.slice(0, 3)
+  const doctors = featuredDoctors.slice(0, 6).map((doctor) => presentDoctor(doctor, specialties, cities))
+  const facilities = featuredFacilities.slice(0, 3).map((facility) => presentFacility(facility, specialties, cities))
   const specialtyCards = specialties.slice(0, 8)
 
   return (
@@ -90,13 +94,15 @@ export default async function HomePage() {
         <div className="max-w-2xl">
           <h2 id="doctors-heading">Препоръчани лекари</h2>
           <p className="mt-2 text-muted-foreground">
-            Подбрани профили. Празният справочник показва примери, докато се публикуват реални лекари.
+            {doctors.length > 0
+              ? "Подбрани профили с контакти, рейтинг и работно време."
+              : "Празният справочник показва примери, докато се публикуват реални лекари."}
           </p>
         </div>
         <ul className="grid gap-4 md:grid-cols-3">
           {doctors.length > 0
             ? doctors.map((doctor) => (
-                <li key={doctor.id}>
+                <li key={doctor.slug ?? doctor.full_name}>
                   <DoctorCard doctor={doctor} />
                 </li>
               ))
@@ -115,15 +121,23 @@ export default async function HomePage() {
         <div className="max-w-2xl">
           <h2 id="facilities-heading">Лечебни заведения</h2>
           <p className="mt-2 text-muted-foreground">
-            Клиники и практики, които ще се появят с публикуването на профилите.
+            {facilities.length > 0
+              ? "Клиники, центрове и болници с публикувани профили."
+              : "Клиники и практики, които ще се появят с публикуването на профилите."}
           </p>
         </div>
         <ul className="grid gap-4 md:grid-cols-3">
-          {placeholderFacilities.map((facility) => (
-            <li key={facility.name}>
-              <FacilityCard facility={{ ...facility, example: true }} />
-            </li>
-          ))}
+          {facilities.length > 0
+            ? facilities.map((facility) => (
+                <li key={facility.slug ?? facility.name}>
+                  <FacilityCard facility={facility} />
+                </li>
+              ))
+            : placeholderFacilities.map((facility) => (
+                <li key={facility.name}>
+                  <FacilityCard facility={{ ...facility, example: true }} />
+                </li>
+              ))}
         </ul>
       </section>
 
@@ -139,18 +153,31 @@ export default async function HomePage() {
           </p>
         </div>
         <ul className="grid gap-4 md:grid-cols-3">
-          {placeholderArticles.map((article) => (
-            <li key={article.title}>
-              <GlassCard className="flex h-full flex-col gap-3">
-                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  Пример
-                </p>
-                <h3>{article.title}</h3>
-                <p className="text-sm text-muted-foreground">{article.excerpt}</p>
-                <p className="mt-auto text-sm text-muted-foreground">{article.date}</p>
-              </GlassCard>
-            </li>
-          ))}
+          {articles.length > 0
+            ? articles.map((article) => (
+                <li key={article.slug}>
+                  <Link
+                    href={`/${article.slug}`}
+                    className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    <GlassCard className="flex h-full flex-col gap-3">
+                      <h3>{article.title}</h3>
+                      {article.excerpt ? <p className="text-sm text-muted-foreground">{article.excerpt}</p> : null}
+                      <p className="mt-auto text-sm text-muted-foreground">{formatBgDate(article.published_at)}</p>
+                    </GlassCard>
+                  </Link>
+                </li>
+              ))
+            : placeholderArticles.map((article) => (
+                <li key={article.title}>
+                  <GlassCard className="flex h-full flex-col gap-3">
+                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Пример</p>
+                    <h3>{article.title}</h3>
+                    <p className="text-sm text-muted-foreground">{article.excerpt}</p>
+                    <p className="mt-auto text-sm text-muted-foreground">{article.date}</p>
+                  </GlassCard>
+                </li>
+              ))}
         </ul>
       </section>
     </main>

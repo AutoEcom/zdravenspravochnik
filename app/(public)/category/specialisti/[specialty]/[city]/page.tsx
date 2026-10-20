@@ -5,6 +5,7 @@ import { DoctorCard } from "@/components/doctors/doctor-card"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { getSearchOptions } from "@/lib/content/catalog"
 import { catalogName, placeholderDoctors } from "@/lib/content/placeholders"
+import { presentDoctor } from "@/lib/content/present"
 import { getDoctorsBySpecialtyAndCity } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
 
@@ -54,11 +55,11 @@ export default async function SpecialtyCityListingPage({ params }: SpecialtyCity
       </div>
       {doctors.length > 0 ? (
         <ul className="grid gap-4 md:grid-cols-3">
-          {doctors.map((doctor) => (
-            <li key={doctor.id}>
-              <DoctorCard doctor={doctor} />
-            </li>
-          ))}
+            {doctors.map((doctor) => (
+              <li key={doctor.id}>
+                <DoctorCard doctor={presentDoctor(doctor, specialties, cities)} />
+              </li>
+            ))}
         </ul>
       ) : (
         <div className="flex flex-col gap-4">

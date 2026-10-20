@@ -6,6 +6,9 @@ import { createPageMetadata } from "@/components/seo/page-meta"
 import { GlassCard } from "@/components/ui/glass-card"
 import { getSearchOptions } from "@/lib/content/catalog"
 import { catalogName, placeholderDoctors } from "@/lib/content/placeholders"
+import { presentDoctor } from "@/lib/content/present"
+import { getDoctorsBySpecialty } from "@/lib/supabase/queries"
+import { safeQuery } from "@/lib/supabase/safe"
 
 type SpecialtyPageProps = {
   params: Promise<{ specialty: string }>
@@ -27,6 +30,7 @@ export default async function SpecialtyListingPage({ params }: SpecialtyPageProp
   const { specialty } = await params
   const { specialties, cities } = await getSearchOptions()
   const name = catalogName(specialties, specialty)
+  const doctors = await safeQuery(() => getDoctorsBySpecialty(specialty), [])
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:py-16">
@@ -34,7 +38,9 @@ export default async function SpecialtyListingPage({ params }: SpecialtyPageProp
         <p className="text-sm font-medium text-primary">Специалисти</p>
         <h1 className="mt-3">{name}</h1>
         <p className="mt-4 text-muted-foreground">
-          Списъкът ще се напълни с публикувани профили. Дотогава може да ограничите търсенето по град.
+          {doctors.length > 0
+            ? "Публикувани профили за тази специалност. Ограничете ги по град, ако търсите наблизо."
+            : "Списъкът ще се напълни с публикувани профили. Дотогава може да ограничите търсенето по град."}
         </p>
       </div>
       <ul className="flex flex-wrap gap-2">
@@ -50,17 +56,23 @@ export default async function SpecialtyListingPage({ params }: SpecialtyPageProp
         ))}
       </ul>
       <ul className="grid gap-4 md:grid-cols-3">
-        {placeholderDoctors.map((doctor) => (
-          <li key={doctor.full_name}>
-            <DoctorCard
-              doctor={{
-                ...doctor,
-                specialties: [name],
-                example: true,
-              }}
-            />
-          </li>
-        ))}
+        {doctors.length > 0
+          ? doctors.map((doctor) => (
+              <li key={doctor.id}>
+                <DoctorCard doctor={presentDoctor(doctor, specialties, cities)} />
+              </li>
+            ))
+          : placeholderDoctors.map((doctor) => (
+              <li key={doctor.full_name}>
+                <DoctorCard
+                  doctor={{
+                    ...doctor,
+                    specialties: [name],
+                    example: true,
+                  }}
+                />
+              </li>
+            ))}
       </ul>
       <GlassCard>
         <h2>Търсене</h2>

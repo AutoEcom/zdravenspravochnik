@@ -72,6 +72,7 @@ export type Doctor = {
   full_name: string
   title: string | null
   bio: string | null
+  short_description: string | null
   photo_url: string | null
   phone: string | null
   email: string | null
@@ -82,6 +83,9 @@ export type Doctor = {
   status: PublishStatus
   is_featured: boolean
   is_premium: boolean
+  accepts_nhif: boolean
+  accepts_children: boolean
+  online_consultation: boolean
   rating: number
   review_count: number
   working_hours: WorkingHours
@@ -95,6 +99,7 @@ export type Facility = {
   name: string
   facility_type: FacilityType
   description: string | null
+  short_description: string | null
   address: string | null
   phone: string | null
   email: string | null
@@ -105,6 +110,9 @@ export type Facility = {
   status: PublishStatus
   is_featured: boolean
   is_premium: boolean
+  accepts_nhif: boolean
+  accepts_children: boolean
+  online_consultation: boolean
   rating: number
   review_count: number
   working_hours: WorkingHours
@@ -184,6 +192,7 @@ export type DoctorInsert = {
   full_name: string
   title?: string | null
   bio?: string | null
+  short_description?: string | null
   photo_url?: string | null
   phone?: string | null
   email?: string | null
@@ -194,6 +203,9 @@ export type DoctorInsert = {
   status?: PublishStatus
   is_featured?: boolean
   is_premium?: boolean
+  accepts_nhif?: boolean
+  accepts_children?: boolean
+  online_consultation?: boolean
   rating?: number
   review_count?: number
   working_hours?: WorkingHours
@@ -207,6 +219,7 @@ export type FacilityInsert = {
   name: string
   facility_type?: FacilityType
   description?: string | null
+  short_description?: string | null
   address?: string | null
   phone?: string | null
   email?: string | null
@@ -217,6 +230,9 @@ export type FacilityInsert = {
   status?: PublishStatus
   is_featured?: boolean
   is_premium?: boolean
+  accepts_nhif?: boolean
+  accepts_children?: boolean
+  online_consultation?: boolean
   rating?: number
   review_count?: number
   working_hours?: WorkingHours

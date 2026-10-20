@@ -1,7 +1,9 @@
 import Link from "next/link"
+import { Star } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
+import { reviewLabel } from "@/lib/content/present"
 
 export type DoctorSummary = {
   slug?: string
@@ -10,30 +12,45 @@ export type DoctorSummary = {
   specialties: readonly string[]
   cities: readonly string[]
   rating?: number
-  is_premium?: boolean
+  reviewCount?: number
+  shortDescription?: string | null
+  acceptsNhif?: boolean
+  acceptsChildren?: boolean
+  onlineConsultation?: boolean
+  isPremium?: boolean
   example?: boolean
 }
 
 export function DoctorCard({ doctor }: { doctor: DoctorSummary }) {
   const body = (
     <GlassCard className="flex h-full flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap gap-2">
         {doctor.example ? <Badge variant="secondary">Пример</Badge> : null}
-        {doctor.is_premium ? <Badge variant="accent">Премиум</Badge> : null}
-        {doctor.title ? <p className="text-sm font-medium text-primary">{doctor.title}</p> : null}
+        {doctor.isPremium ? <Badge variant="accent">Премиум</Badge> : null}
+        {doctor.acceptsNhif ? <Badge>НЗОК</Badge> : null}
+        {doctor.acceptsChildren ? <Badge variant="success">Деца</Badge> : null}
+        {doctor.onlineConsultation ? <Badge variant="outline">Онлайн</Badge> : null}
       </div>
+      {doctor.title ? <p className="text-sm font-medium text-primary">{doctor.title}</p> : null}
       <h3>{doctor.full_name}</h3>
       <p className="text-sm text-muted-foreground">{doctor.specialties.join(", ") || "Специалност"}</p>
-      <p className="mt-auto text-sm text-muted-foreground">{doctor.cities.join(", ") || "България"}</p>
+      <p className="text-sm text-muted-foreground">{doctor.cities.join(", ") || "България"}</p>
+      {doctor.shortDescription ? (
+        <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{doctor.shortDescription}</p>
+      ) : null}
       {doctor.rating && doctor.rating > 0 ? (
-        <p className="text-sm font-medium">Оценка {doctor.rating.toFixed(1)}</p>
+        <p className="mt-auto flex items-center gap-1.5 text-sm font-medium">
+          <Star className="size-4 fill-warning text-warning" />
+          {doctor.rating.toFixed(1)}
+          {doctor.reviewCount ? (
+            <span className="font-normal text-muted-foreground">· {reviewLabel(doctor.reviewCount)}</span>
+          ) : null}
+        </p>
       ) : null}
     </GlassCard>
   )
 
-  if (!doctor.slug || doctor.example) {
-    return body
-  }
+  if (!doctor.slug || doctor.example) return body
 
   return (
     <Link

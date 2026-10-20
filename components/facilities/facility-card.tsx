@@ -1,6 +1,9 @@
 import Link from "next/link"
+import { Star } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
+import { reviewLabel } from "@/lib/content/present"
 
 export type FacilitySummary = {
   name: string
@@ -8,25 +11,44 @@ export type FacilitySummary = {
   specialties: readonly string[]
   cities: readonly string[]
   slug?: string
+  rating?: number
+  reviewCount?: number
+  shortDescription?: string | null
+  acceptsNhif?: boolean
+  acceptsChildren?: boolean
+  onlineConsultation?: boolean
   example?: boolean
 }
 
 export function FacilityCard({ facility }: { facility: FacilitySummary }) {
   const body = (
     <GlassCard className="flex h-full flex-col gap-3">
-      {facility.example ? (
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Пример</p>
-      ) : null}
+      <div className="flex flex-wrap gap-2">
+        {facility.example ? <Badge variant="secondary">Пример</Badge> : null}
+        {facility.acceptsNhif ? <Badge>НЗОК</Badge> : null}
+        {facility.acceptsChildren ? <Badge variant="success">Деца</Badge> : null}
+        {facility.onlineConsultation ? <Badge variant="outline">Онлайн</Badge> : null}
+      </div>
       <p className="text-sm font-medium text-primary">{facility.facilityType}</p>
       <h3>{facility.name}</h3>
-      <p className="text-sm text-muted-foreground">{facility.specialties.join(", ")}</p>
-      <p className="mt-auto text-sm text-muted-foreground">{facility.cities.join(", ")}</p>
+      <p className="text-sm text-muted-foreground">{facility.specialties.join(", ") || "Специалности"}</p>
+      <p className="text-sm text-muted-foreground">{facility.cities.join(", ") || "България"}</p>
+      {facility.shortDescription ? (
+        <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{facility.shortDescription}</p>
+      ) : null}
+      {facility.rating && facility.rating > 0 ? (
+        <p className="mt-auto flex items-center gap-1.5 text-sm font-medium">
+          <Star className="size-4 fill-warning text-warning" />
+          {facility.rating.toFixed(1)}
+          {facility.reviewCount ? (
+            <span className="font-normal text-muted-foreground">· {reviewLabel(facility.reviewCount)}</span>
+          ) : null}
+        </p>
+      ) : null}
     </GlassCard>
   )
 
-  if (!facility.slug || facility.example) {
-    return body
-  }
+  if (!facility.slug || facility.example) return body
 
   return (
     <Link
