@@ -12,6 +12,10 @@ export type ReviewStatus = "pending" | "published" | "rejected"
 
 export type UserRole = "patient" | "doctor" | "facility_admin" | "admin"
 
+export type ClaimTargetType = "doctor" | "facility"
+
+export type ClaimStatus = "pending" | "approved" | "rejected"
+
 export type FacilityType =
   | "hospital"
   | "clinic"
@@ -86,6 +90,8 @@ export type Doctor = {
   accepts_nhif: boolean
   accepts_children: boolean
   online_consultation: boolean
+  is_claimed: boolean
+  claimed_by: string | null
   rating: number
   review_count: number
   working_hours: WorkingHours
@@ -113,11 +119,26 @@ export type Facility = {
   accepts_nhif: boolean
   accepts_children: boolean
   online_consultation: boolean
+  is_claimed: boolean
+  claimed_by: string | null
   rating: number
   review_count: number
   working_hours: WorkingHours
   created_at: string
   updated_at: string
+}
+
+export type ClaimRequest = {
+  id: string
+  user_id: string
+  target_type: ClaimTargetType
+  target_id: string
+  email: string
+  status: ClaimStatus
+  email_verified: boolean
+  code_hash: string | null
+  code_expires_at: string | null
+  created_at: string
 }
 
 export type FacilityDoctor = {
@@ -206,6 +227,8 @@ export type DoctorInsert = {
   accepts_nhif?: boolean
   accepts_children?: boolean
   online_consultation?: boolean
+  is_claimed?: boolean
+  claimed_by?: string | null
   rating?: number
   review_count?: number
   working_hours?: WorkingHours
@@ -233,11 +256,26 @@ export type FacilityInsert = {
   accepts_nhif?: boolean
   accepts_children?: boolean
   online_consultation?: boolean
+  is_claimed?: boolean
+  claimed_by?: string | null
   rating?: number
   review_count?: number
   working_hours?: WorkingHours
   created_at?: string
   updated_at?: string
+}
+
+export type ClaimRequestInsert = {
+  id?: string
+  user_id: string
+  target_type: ClaimTargetType
+  target_id: string
+  email: string
+  status?: ClaimStatus
+  email_verified?: boolean
+  code_hash?: string | null
+  code_expires_at?: string | null
+  created_at?: string
 }
 
 export type FacilityDoctorInsert = {
@@ -282,6 +320,7 @@ export type ProfileUpdate = Partial<ProfileInsert>
 export type DoctorUpdate = Partial<DoctorInsert>
 export type FacilityUpdate = Partial<FacilityInsert>
 export type FacilityDoctorUpdate = Partial<FacilityDoctorInsert>
+export type ClaimRequestUpdate = Partial<ClaimRequestInsert>
 export type ArticleUpdate = Partial<ArticleInsert>
 export type ReviewUpdate = Partial<ReviewInsert>
 
@@ -378,6 +417,20 @@ export type Database = {
           {
             foreignKeyName: "articles_author_id_fkey"
             columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      >
+      claim_requests: Table<
+        ClaimRequest,
+        ClaimRequestInsert,
+        ClaimRequestUpdate,
+        [
+          {
+            foreignKeyName: "claim_requests_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

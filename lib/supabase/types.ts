@@ -1,6 +1,7 @@
 export type {
   Article,
   City,
+  ClaimRequest,
   Database,
   Doctor,
   Facility,

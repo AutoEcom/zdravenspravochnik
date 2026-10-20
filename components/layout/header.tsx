@@ -60,6 +60,9 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
+            <Link href="/login" className={linkClass}>
+              Вход
+            </Link>
           </nav>
 
           <Link
@@ -88,6 +91,9 @@ export function Header() {
                   {item.label}
                 </Link>
               ))}
+              <Link href="/login" className={linkClass}>
+                Вход
+              </Link>
             </nav>
           </details>
         </div>

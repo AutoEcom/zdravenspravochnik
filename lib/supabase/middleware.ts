@@ -1,6 +1,21 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
+import { canOpenDashboard, homeForRole, isUserRole } from "@/lib/auth/roles"
+import type { Database } from "@/lib/supabase/types"
+import type { UserRole } from "@/types/database"
+
+function redirectWithSession(request: NextRequest, sessionResponse: NextResponse, pathname: string, search = "") {
+  const url = request.nextUrl.clone()
+  url.pathname = pathname
+  url.search = search
+  const redirectResponse = NextResponse.redirect(url)
+  sessionResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie.name, cookie.value)
+  })
+  return redirectResponse
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -13,7 +28,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll()
@@ -34,12 +49,39 @@ export async function updateSession(request: NextRequest) {
   })
 
   // Do not run code between createServerClient and supabase.auth.getClaims().
-  // A simple mistake could make it very hard to debug issues with users being
-  // randomly logged out.
+  const { data } = await supabase.auth.getClaims()
+  const userId = typeof data?.claims.sub === "string" ? data.claims.sub : null
+  const path = request.nextUrl.pathname
+  const isDashboard = path === "/dashboard" || path.startsWith("/dashboard/")
+  const isAdmin = path === "/admin" || path.startsWith("/admin/")
+  const isClaim = path === "/claim" || path.startsWith("/claim/")
+  const isLogin = path === "/login"
+  const needsSession = isDashboard || isAdmin || isClaim || (isLogin && Boolean(userId))
 
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering with
-  // the Supabase client, your users may be randomly logged out.
-  await supabase.auth.getClaims()
+  if (!needsSession) return supabaseResponse
+
+  let role: UserRole = "patient"
+  if (userId) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle()
+    if (profile && isUserRole(profile.role)) role = profile.role
+  }
+
+  if ((isDashboard || isAdmin || isClaim) && !userId) {
+    const next = `${path}${request.nextUrl.search}`
+    return redirectWithSession(request, supabaseResponse, "/login", `?next=${encodeURIComponent(next)}`)
+  }
+
+  if (isDashboard && !canOpenDashboard(role)) {
+    return redirectWithSession(request, supabaseResponse, "/claim")
+  }
+
+  if (isAdmin && role !== "admin") {
+    return redirectWithSession(request, supabaseResponse, homeForRole(role))
+  }
+
+  if (isLogin && userId) {
+    return redirectWithSession(request, supabaseResponse, homeForRole(role))
+  }
 
   return supabaseResponse
 }

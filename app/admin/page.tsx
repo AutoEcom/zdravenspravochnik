@@ -1,18 +1,29 @@
-import Link from "next/link"
+import { redirect } from "next/navigation"
 
-import { buttonVariants } from "@/components/ui/button"
+import { ClaimQueue } from "@/app/admin/claim-queue"
+import { AccountShell } from "@/components/account/account-shell"
+import { GlassCard } from "@/components/ui/glass-card"
+import { createPageMetadata } from "@/components/seo/page-meta"
+import { getSessionProfile } from "@/lib/auth/session"
+import { listPendingClaims } from "@/lib/claims/service"
 
-export default function AdminPage() {
+export const metadata = createPageMetadata({
+  title: "Админ",
+  description: "Одобряване и отхвърляне на заявки за профили.",
+  path: "/admin",
+  index: false,
+})
+
+export default async function AdminPage() {
+  const { user, profile } = await getSessionProfile()
+  if (!user) redirect("/login?next=/admin")
+  if (profile?.role !== "admin") redirect("/claim")
+
+  const result = await listPendingClaims()
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center gap-4 px-6 py-16">
-      <p className="text-sm font-medium text-primary">Администрация</p>
-      <h1 className="text-3xl font-semibold tracking-tight">Управление на справочника</h1>
-      <p className="text-muted-foreground">
-        Тук ще се одобряват лекари, заведения и съдържание.
-      </p>
-      <Link href="/" className={buttonVariants({ variant: "outline", className: "w-fit" })}>
-        Към началото
-      </Link>
-    </main>
+    <AccountShell role="admin" eyebrow="Администрация" title="Чакащи заявки">
+      {"error" in result ? <GlassCard variant="panel">{result.error}</GlassCard> : <ClaimQueue items={result.items} />}
+    </AccountShell>
   )
 }
