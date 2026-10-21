@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation"
 
 import { ProfileEditor } from "@/app/dashboard/profile-editor"
 import { AccountShell } from "@/components/account/account-shell"
-import { canOpenDashboard, isUserRole } from "@/lib/auth/roles"
+import { isUserRole } from "@/lib/auth/roles"
 import { getSessionProfile } from "@/lib/auth/session"
 import { friendlyDbError } from "@/lib/claims/errors"
 import { displayName } from "@/lib/content/present"
@@ -24,7 +24,6 @@ export default async function EditClaimedProfilePage({
 
   const { user, profile } = await getSessionProfile()
   if (!user) redirect(`/login?next=/dashboard/${kind}/${id}`)
-  if (!canOpenDashboard(profile?.role)) redirect("/claim")
 
   const supabase = await createClient()
   const role = isUserRole(profile?.role) ? profile.role : "patient"

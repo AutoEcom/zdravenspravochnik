@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-import { canOpenDashboard, homeForRole, isUserRole } from "@/lib/auth/roles"
+import { homeForRole, isUserRole } from "@/lib/auth/roles"
 import type { Database } from "@/lib/supabase/types"
 import type { UserRole } from "@/types/database"
 
@@ -69,10 +69,6 @@ export async function updateSession(request: NextRequest) {
   if ((isDashboard || isAdmin || isClaim) && !userId) {
     const next = `${path}${request.nextUrl.search}`
     return redirectWithSession(request, supabaseResponse, "/login", `?next=${encodeURIComponent(next)}`)
-  }
-
-  if (isDashboard && !canOpenDashboard(role)) {
-    return redirectWithSession(request, supabaseResponse, "/claim")
   }
 
   if (isAdmin && role !== "admin") {

@@ -5,7 +5,7 @@ import { AccountShell } from "@/components/account/account-shell"
 import { buttonVariants } from "@/components/ui/button"
 import { GlassCard } from "@/components/ui/glass-card"
 import { createPageMetadata } from "@/components/seo/page-meta"
-import { canOpenDashboard, isUserRole } from "@/lib/auth/roles"
+import { isUserRole } from "@/lib/auth/roles"
 import { getSessionProfile } from "@/lib/auth/session"
 import { friendlyDbError } from "@/lib/claims/errors"
 import { displayName } from "@/lib/content/present"
@@ -21,9 +21,24 @@ export const metadata = createPageMetadata({
 export default async function DashboardPage() {
   const { user, profile } = await getSessionProfile()
   if (!user) redirect("/login?next=/dashboard")
-  if (!canOpenDashboard(profile?.role)) redirect("/claim")
 
-  const role = isUserRole(profile?.role) ? profile.role : "doctor"
+  const role = isUserRole(profile?.role) ? profile.role : "patient"
+  const name = profile?.full_name?.trim()
+
+  if (role === "patient") {
+    return (
+      <AccountShell role="patient" eyebrow="Табло" title={name ? `Здравейте, ${name}` : "Здравейте"}>
+        <GlassCard variant="panel" className="grid gap-4">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Тук ще стоят профилите, които заявите. Започнете, като потвърдите лекар или лечебно заведение с имейла от обявата.
+          </p>
+          <Link href="/claim" className={buttonVariants({ className: "w-full sm:w-fit" })}>
+            Заяви лекар или заведение
+          </Link>
+        </GlassCard>
+      </AccountShell>
+    )
+  }
   const supabase = await createClient()
   const [doctors, facilities] = await Promise.all([
     supabase.from("doctors").select("id, slug, full_name, title").eq("claimed_by", user.id).order("full_name"),

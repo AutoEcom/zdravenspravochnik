@@ -1,5 +1,8 @@
 import Link from "next/link"
-import { Menu, Plus, Search } from "lucide-react"
+import { Menu, Search } from "lucide-react"
+
+import { HeaderAuth } from "@/components/layout/header-auth"
+import { LogoMark } from "@/components/layout/logo-mark"
 
 const nav: { href: string; label: string; accent?: boolean }[] = [
   { href: "/search", label: "Специалисти" },
@@ -23,12 +26,7 @@ export function Header() {
             href="/"
             className="flex shrink-0 items-center gap-2.5 leading-none focus-visible:rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
-            <span
-              aria-hidden
-              className="flex size-9 items-center justify-center rounded-xl bg-primary text-white"
-            >
-              <Plus className="size-5" strokeWidth={2.5} />
-            </span>
+            <LogoMark />
             <span className="flex flex-col">
               <span className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
                 Здравен
@@ -60,20 +58,19 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/login" className={linkClass}>
-              Вход
-            </Link>
           </nav>
 
-          <Link
-            href="/search"
-            className="ml-auto inline-flex size-11 items-center justify-center rounded-xl text-foreground transition-colors duration-200 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 lg:ml-0 md:hidden"
-            aria-label="Търсене"
-          >
-            <Search className="size-5" />
-          </Link>
+          <div className="ml-auto flex items-center gap-1 lg:ml-0">
+            <HeaderAuth />
+            <Link
+              href="/search"
+              className="inline-flex size-11 items-center justify-center rounded-xl text-foreground transition-colors duration-200 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 md:hidden"
+              aria-label="Търсене"
+            >
+              <Search className="size-5" />
+            </Link>
 
-          <details className="relative lg:hidden">
+            <details className="relative lg:hidden">
             <summary className="flex size-11 cursor-pointer list-none items-center justify-center rounded-xl transition-colors duration-200 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 [&::-webkit-details-marker]:hidden">
               <span className="sr-only">Меню</span>
               <Menu className="size-5" />
@@ -91,11 +88,9 @@ export function Header() {
                   {item.label}
                 </Link>
               ))}
-              <Link href="/login" className={linkClass}>
-                Вход
-              </Link>
             </nav>
           </details>
+          </div>
         </div>
       </div>
     </header>

@@ -1,8 +1,7 @@
 import Link from "next/link"
-import { Plus } from "lucide-react"
 
+import { LogoMark } from "@/components/layout/logo-mark"
 import { SignOutButton } from "@/components/account/sign-out-button"
-import { canOpenDashboard } from "@/lib/auth/roles"
 import type { UserRole } from "@/types/database"
 
 const linkClass =
@@ -23,21 +22,17 @@ export function AccountShell({
     <div className="min-h-screen">
       <header className="glass sticky top-0 z-40">
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-3">
-          <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Начало">
-            <span aria-hidden className="flex size-8 items-center justify-center rounded-xl bg-primary text-white">
-              <Plus className="size-4" strokeWidth={2.5} />
-            </span>
+          <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Здравен справочник">
+            <LogoMark className="size-9" />
             <span className="hidden text-sm font-semibold text-primary sm:inline">справочник</span>
           </Link>
           <nav className="ml-auto flex items-center" aria-label="Профил">
+            <Link href="/dashboard" className={linkClass}>
+              Табло
+            </Link>
             <Link href="/claim" className={linkClass}>
               Заяви
             </Link>
-            {canOpenDashboard(role) ? (
-              <Link href="/dashboard" className={linkClass}>
-                Табло
-              </Link>
-            ) : null}
             {role === "admin" ? (
               <Link href="/admin" className={linkClass}>
                 Админ

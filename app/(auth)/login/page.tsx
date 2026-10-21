@@ -1,7 +1,7 @@
 import Link from "next/link"
-import { Plus } from "lucide-react"
 
 import { LoginForm } from "@/app/(auth)/login/login-form"
+import { LogoMark } from "@/components/layout/logo-mark"
 import { GlassCard } from "@/components/ui/glass-card"
 import { safeNextPath } from "@/lib/auth/paths"
 import { createPageMetadata } from "@/components/seo/page-meta"
@@ -28,9 +28,7 @@ export default async function LoginPage({
           href="/"
           className="mb-6 flex items-center gap-2.5 focus-visible:rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
-          <span aria-hidden className="flex size-9 items-center justify-center rounded-xl bg-primary text-white">
-            <Plus className="size-5" strokeWidth={2.5} />
-          </span>
+          <LogoMark />
           <span className="flex flex-col leading-none">
             <span className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
               Здравен

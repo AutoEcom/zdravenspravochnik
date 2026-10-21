@@ -8,8 +8,7 @@ export function isUserRole(value: string | null | undefined): value is UserRole 
 
 export function homeForRole(role: UserRole | null | undefined) {
   if (role === "admin") return "/admin"
-  if (role === "doctor" || role === "facility_admin") return "/dashboard"
-  return "/claim"
+  return "/dashboard"
 }
 
 export function canOpenDashboard(role: UserRole | null | undefined) {

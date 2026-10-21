@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache"
 
 import { friendlyDbError } from "@/lib/claims/errors"
 import { getSessionProfile } from "@/lib/auth/session"
-import { canOpenDashboard } from "@/lib/auth/roles"
 import { createClient } from "@/lib/supabase/server"
 import type { WorkingHours } from "@/types/database"
 
@@ -53,8 +52,8 @@ export async function updateOwnedProfile(
   _prev: { ok: boolean; message: string } | null,
   formData: FormData
 ): Promise<{ ok: boolean; message: string }> {
-  const { user, profile } = await getSessionProfile()
-  if (!user || !canOpenDashboard(profile?.role)) {
+  const { user } = await getSessionProfile()
+  if (!user) {
     return { ok: false, message: "Нямате достъп до това табло." }
   }
 
