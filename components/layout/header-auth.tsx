@@ -134,7 +134,11 @@ export function HeaderAuth() {
       >
         {session.initials}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="glass-panel min-w-56 rounded-2xl p-2">
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="glass-panel z-[60] w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl p-2"
+      >
         <DropdownMenuLabel className="px-3 py-2 text-sm font-medium text-foreground">
           {session.label}
         </DropdownMenuLabel>
