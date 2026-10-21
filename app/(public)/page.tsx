@@ -176,7 +176,7 @@ export default async function HomePage() {
             ? articles.map((article) => (
                 <li key={article.slug}>
                   <Link
-                    href={`/${article.slug}`}
+                    href={`/articles/${article.slug}`}
                     className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
                     <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">

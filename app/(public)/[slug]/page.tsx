@@ -1,11 +1,11 @@
 import { cache } from "react"
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 
-import { ArticleView } from "@/components/articles/article-view"
 import { DoctorProfile } from "@/components/doctors/doctor-profile"
 import { FacilityProfile } from "@/components/facilities/facility-profile"
 import { createPageMetadata } from "@/components/seo/page-meta"
+import { articleCover } from "@/lib/content/slug"
 import { getSearchOptions } from "@/lib/content/catalog"
 import { displayName, presentDoctor, presentFacility } from "@/lib/content/present"
 import {
@@ -96,12 +96,12 @@ export async function generateMetadata({
       ? match.doctor.photo_url
       : match.kind === "facility"
         ? match.facility.photo_url
-        : match.article.cover_url
+        : articleCover(match.article)
 
   return createPageMetadata({
     title,
     description: descriptionFor(match),
-    path: `/${slug}`,
+    path: match.kind === "article" ? `/articles/${match.article.slug}` : `/${slug}`,
     image,
   })
 }
@@ -115,7 +115,7 @@ export default async function PublicSlugPage({
   const match = await resolvePublicSlug(slug)
   if (!match) notFound()
 
-  if (match.kind === "article") return <ArticleView article={match.article} />
+  if (match.kind === "article") permanentRedirect(`/articles/${match.article.slug}`)
 
   const { specialties, cities } = await getSearchOptions()
 

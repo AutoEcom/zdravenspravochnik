@@ -160,6 +160,7 @@ export type Article = {
   excerpt: string | null
   content: string
   cover_url: string | null
+  cover_image_url: string | null
   author_id: string | null
   status: PublishStatus
   published_at: string | null
@@ -299,6 +300,7 @@ export type ArticleInsert = {
   excerpt?: string | null
   content?: string
   cover_url?: string | null
+  cover_image_url?: string | null
   author_id?: string | null
   status?: PublishStatus
   published_at?: string | null

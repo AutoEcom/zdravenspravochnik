@@ -1,4 +1,4 @@
-import type { Doctor, Facility } from "@/types/database"
+import type { Article, Doctor, Facility } from "@/types/database"
 
 import { openingHoursSpecification } from "@/lib/content/present"
 import { absoluteUrl, siteConfig } from "@/lib/site"
@@ -154,6 +154,39 @@ export function medicalClinicJsonLd(
             worstRating: 1,
           }
         : undefined,
+  })
+}
+
+export function articleJsonLd(article: Article, cover: string | null) {
+  const pageUrl = absoluteUrl(`/articles/${article.slug}`)
+  const body = article.content.replace(/[#*[\]()]/g, " ").replace(/\s+/g, " ").trim()
+
+  return defined({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${pageUrl}#article`,
+    headline: article.title,
+    description: article.excerpt || body.slice(0, 160),
+    articleBody: body,
+    image: cover ? [cover] : undefined,
+    datePublished: article.published_at,
+    dateModified: article.updated_at,
+    inLanguage: "bg-BG",
+    isAccessibleForFree: true,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": pageUrl,
+    },
+    author: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
   })
 }
 

@@ -5,7 +5,7 @@ const links = [
   { href: "/specialisti", label: "Специалисти" },
   { href: "/zavedenia", label: "Заведения" },
   { href: "/jensko-zdrave", label: "Женско здраве" },
-  { href: "/#statii", label: "Статии" },
+  { href: "/articles", label: "Полезно" },
   { href: "/za-nas", label: "За нас" },
   { href: "/kontakti", label: "Контакти" },
   { href: "/login", label: "Вход" },

@@ -38,6 +38,11 @@ export function AccountShell({
                 Админ
               </Link>
             ) : null}
+            {role === "admin" ? (
+              <Link href="/admin/articles" className={linkClass}>
+                Статии
+              </Link>
+            ) : null}
             <SignOutButton />
           </nav>
         </div>

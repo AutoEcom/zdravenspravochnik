@@ -8,7 +8,7 @@ export async function getPublishedArticles(limit = 3): Promise<Article[]> {
     .from("articles")
     .select("*")
     .eq("status", "published")
-    .order("published_at", { ascending: false })
+    .order("published_at", { ascending: false, nullsFirst: false })
     .limit(limit)
 
   if (error) {

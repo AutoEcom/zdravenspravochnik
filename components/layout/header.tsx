@@ -8,7 +8,7 @@ const nav: { href: string; label: string; accent?: boolean }[] = [
   { href: "/specialisti", label: "Специалисти" },
   { href: "/zavedenia", label: "Заведения" },
   { href: "/jensko-zdrave", label: "Женско здраве", accent: true },
-  { href: "/#statii", label: "Статии" },
+  { href: "/articles", label: "Полезно" },
 ]
 
 const linkClass =
