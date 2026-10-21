@@ -95,6 +95,7 @@ export type Doctor = {
   rating: number
   review_count: number
   working_hours: WorkingHours
+  source: string | null
   created_at: string
   updated_at: string
 }
@@ -124,6 +125,7 @@ export type Facility = {
   rating: number
   review_count: number
   working_hours: WorkingHours
+  source: string | null
   created_at: string
   updated_at: string
 }
@@ -232,6 +234,7 @@ export type DoctorInsert = {
   rating?: number
   review_count?: number
   working_hours?: WorkingHours
+  source?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -261,6 +264,7 @@ export type FacilityInsert = {
   rating?: number
   review_count?: number
   working_hours?: WorkingHours
+  source?: string | null
   created_at?: string
   updated_at?: string
 }

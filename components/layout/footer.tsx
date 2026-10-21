@@ -2,8 +2,8 @@ import Link from "next/link"
 
 const links = [
   { href: "/", label: "Начало" },
-  { href: "/search", label: "Специалисти" },
-  { href: "/search?kind=facility", label: "Заведения" },
+  { href: "/specialisti", label: "Специалисти" },
+  { href: "/zavedenia", label: "Заведения" },
   { href: "/jensko-zdrave", label: "Женско здраве" },
   { href: "/#statii", label: "Статии" },
   { href: "/za-nas", label: "За нас" },

@@ -15,6 +15,7 @@ type SearchFormProps = {
     q?: string
     specialty?: string
     city?: string
+    kind?: string
   }
 }
 
@@ -67,6 +68,7 @@ export function SearchForm({ specialties, cities, defaults }: SearchFormProps) {
       <button type="submit" className={buttonVariants({ variant: "accent", className: "w-full lg:w-auto" })}>
         Търси
       </button>
+      {defaults?.kind ? <input type="hidden" name="kind" value={defaults.kind} /> : null}
     </form>
   )
 }

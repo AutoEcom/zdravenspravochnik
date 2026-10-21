@@ -88,8 +88,14 @@ export function labelFromSlug(slug: string) {
 }
 
 export function catalogName(
-  items: readonly { name: string; slug: string }[],
+  items: readonly { name: string; slug: string; aliases?: readonly string[] }[],
   slug: string
 ) {
-  return items.find((item) => item.slug === slug)?.name ?? labelFromSlug(slug)
+  const key = slug.trim().toLocaleLowerCase("bg")
+  const match = items.find(
+    (item) =>
+      item.slug.toLocaleLowerCase("bg") === key ||
+      item.aliases?.some((alias) => alias.toLocaleLowerCase("bg") === key)
+  )
+  return match?.name ?? labelFromSlug(slug)
 }

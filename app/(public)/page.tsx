@@ -13,6 +13,7 @@ import {
   placeholderArticles,
   placeholderDoctors,
   placeholderFacilities,
+  popularSpecialties,
 } from "@/lib/content/placeholders"
 import { formatBgDate, presentDoctor, presentFacility } from "@/lib/content/present"
 import { getFeaturedDoctors, getFeaturedFacilities, getPublishedArticles } from "@/lib/supabase/queries"
@@ -44,7 +45,16 @@ export default async function HomePage() {
   ])
   const doctors = featuredDoctors.slice(0, 6).map((doctor) => presentDoctor(doctor, specialties, cities))
   const facilities = featuredFacilities.slice(0, 3).map((facility) => presentFacility(facility, specialties, cities))
-  const specialtyCards = specialties.slice(0, 8)
+  const specialtyCards = popularSpecialties.flatMap((item) => {
+    const match = specialties.find(
+      (specialty) =>
+        specialty.slug === item.slug ||
+        specialty.aliases.includes(item.slug) ||
+        specialty.name === item.name
+    )
+    return match ? [match] : []
+  })
+  const highlightedSpecialties = specialtyCards.length > 0 ? specialtyCards : specialties.slice(0, 8)
 
   return (
     <main>
@@ -76,7 +86,7 @@ export default async function HomePage() {
           </p>
         </div>
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {specialtyCards.map((specialty) => (
+          {highlightedSpecialties.map((specialty) => (
             <li key={specialty.slug}>
               <Link
                 href={`/category/specialisti/${specialty.slug}`}

@@ -17,23 +17,32 @@ import {
 } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
 
-const resolvePublicSlug = cache(async (slug: string) => {
+function normalizePublicSlug(slug: string) {
   try {
-    const doctor = await getDoctorBySlug(slug)
+    return decodeURIComponent(slug).normalize("NFC")
+  } catch {
+    return slug.normalize("NFC")
+  }
+}
+
+const resolvePublicSlug = cache(async (slug: string) => {
+  const normalized = normalizePublicSlug(slug)
+  try {
+    const doctor = await getDoctorBySlug(normalized)
     if (doctor) return { kind: "doctor" as const, doctor }
   } catch {
     // A missing doctor table should still allow the next lookup.
   }
 
   try {
-    const facility = await getFacilityBySlug(slug)
+    const facility = await getFacilityBySlug(normalized)
     if (facility) return { kind: "facility" as const, facility }
   } catch {
     // Continue to articles when the facilities table is unavailable.
   }
 
   try {
-    const article = await getArticleBySlug(slug)
+    const article = await getArticleBySlug(normalized)
     if (article) return { kind: "article" as const, article }
   } catch {
     return null
@@ -63,7 +72,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const { slug } = await params
+  const slug = normalizePublicSlug((await params).slug)
   const match = await resolvePublicSlug(slug)
 
   if (!match) {
@@ -102,7 +111,7 @@ export default async function PublicSlugPage({
 }: {
   params: Promise<{ slug: string }>
 }) {
-  const { slug } = await params
+  const slug = normalizePublicSlug((await params).slug)
   const match = await resolvePublicSlug(slug)
   if (!match) notFound()
 

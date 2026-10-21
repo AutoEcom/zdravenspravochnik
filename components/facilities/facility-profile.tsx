@@ -6,6 +6,7 @@ import { FacilityCard, type FacilitySummary } from "@/components/facilities/faci
 import { OpeningHours } from "@/components/profiles/opening-hours"
 import { PlaceCard } from "@/components/profiles/place-card"
 import { ProfileActions } from "@/components/profiles/profile-actions"
+import { ProfileDescription } from "@/components/profiles/rich-text"
 import { ProfileFaq } from "@/components/profiles/profile-faq"
 import { ReviewsNote } from "@/components/profiles/reviews-note"
 import { JsonLd } from "@/components/seo/json-ld"
@@ -45,7 +46,7 @@ export function FacilityProfile({
   const faqs = facilityFaqs(facility, specialtyNames, locality, kind)
   const crumbs = [
     { name: "Начало", path: "/" },
-    { name: "Заведения", path: "/search?kind=facility" },
+    { name: "Заведения", path: "/zavedenia" },
     { name: facility.name, path: `/${facility.slug}` },
   ]
 
@@ -108,7 +109,7 @@ export function FacilityProfile({
       {facility.description ? (
         <GlassCard className="flex flex-col gap-3">
           <h2>За заведението</h2>
-          <p className="max-w-3xl leading-relaxed">{facility.description}</p>
+          <ProfileDescription html={facility.description} />
         </GlassCard>
       ) : null}
 

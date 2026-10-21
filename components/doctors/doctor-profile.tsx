@@ -6,6 +6,7 @@ import { DoctorCard, type DoctorSummary } from "@/components/doctors/doctor-card
 import { OpeningHours } from "@/components/profiles/opening-hours"
 import { PlaceCard } from "@/components/profiles/place-card"
 import { ProfileActions } from "@/components/profiles/profile-actions"
+import { ProfileDescription } from "@/components/profiles/rich-text"
 import { ProfileFaq } from "@/components/profiles/profile-faq"
 import { ReviewsNote } from "@/components/profiles/reviews-note"
 import { JsonLd } from "@/components/seo/json-ld"
@@ -46,7 +47,7 @@ export function DoctorProfile({
     { name: "Начало", path: "/" },
     doctor.specialties[0]
       ? { name: specialtyNames[0] ?? "Специалисти", path: `/category/specialisti/${doctor.specialties[0]}` }
-      : { name: "Специалисти", path: "/search" },
+      : { name: "Специалисти", path: "/specialisti" },
     { name, path: `/${doctor.slug}` },
   ]
 
@@ -106,7 +107,7 @@ export function DoctorProfile({
       {doctor.bio ? (
         <GlassCard className="flex flex-col gap-3">
           <h2>За специалиста</h2>
-          <p className="max-w-3xl leading-relaxed">{doctor.bio}</p>
+          <ProfileDescription html={doctor.bio} />
         </GlassCard>
       ) : null}
 

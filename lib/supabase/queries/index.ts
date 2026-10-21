@@ -13,3 +13,9 @@ export {
 export { getArticleBySlug, getPublishedArticles } from "@/lib/supabase/queries/articles"
 export { getSpecialties } from "@/lib/supabase/queries/specialties"
 export { getCities } from "@/lib/supabase/queries/cities"
+export {
+  getPublishedDoctors,
+  getPublishedFacilities,
+  searchDoctors,
+  searchFacilities,
+} from "@/lib/supabase/queries/search"
