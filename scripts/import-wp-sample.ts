@@ -3,6 +3,8 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
+import { doctors as seedDoctors, facilities as seedFacilities } from "./seed-data"
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const importDir = path.join(root, "data", "import")
 
@@ -19,7 +21,11 @@ const LIMITS = {
 } as const
 
 type Group = keyof typeof LIMITS
-type FacilityType = "hospital" | "clinic" | "laboratory"
+type FacilityType = "hospital" | "clinic" | "laboratory" | "other"
+
+const BATCH = 80
+const CLAIM_BATCH = 20
+const seedSlugs = new Set<string>([...seedDoctors.map((row) => row.slug), ...seedFacilities.map((row) => row.slug)])
 
 type Term = {
   id: string
@@ -560,13 +566,110 @@ async function upsertFlexible(supabase: SupabaseClient, table: "doctors" | "faci
   throw new Error(`${table}: upsert не мина`)
 }
 
-async function claimedSlugs(supabase: SupabaseClient, table: "doctors" | "facilities", slugs: string[]) {
-  const { data, error } = await supabase.from(table).select("slug, is_claimed").in("slug", slugs)
-  if (error) return new Set<string>()
-  return new Set((data ?? []).filter((row) => row.is_claimed).map((row) => String(row.slug)))
+function isTransient(message: string) {
+  return /fetch failed|network|timeout|ECONNRESET|ETIMEDOUT|socket|502|503|504/i.test(message)
 }
 
-async function main() {
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function claimedSlugs(supabase: SupabaseClient, table: "doctors" | "facilities", slugs: string[]) {
+  const claimed = new Set<string>()
+  for (let index = 0; index < slugs.length; index += CLAIM_BATCH) {
+    const slice = slugs.slice(index, index + CLAIM_BATCH)
+    let loaded = false
+    let lastMessage = ""
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      const { data, error } = await supabase.from(table).select("slug, is_claimed").in("slug", slice)
+      if (!error) {
+        for (const row of data ?? []) {
+          if (row.is_claimed) claimed.add(String(row.slug))
+        }
+        loaded = true
+        break
+      }
+      lastMessage = error.message
+      if (!isTransient(error.message) || attempt === 5) break
+      console.log(`${table}: мрежова грешка при проверка, нов опит ${attempt + 1}/5`)
+      await wait(1000 * attempt)
+    }
+    if (!loaded) throw new Error(`${table}: ${lastMessage}`)
+  }
+  return claimed
+}
+
+type ImportError = { slug: string; message: string; stage: string }
+
+async function upsertInBatches(
+  supabase: SupabaseClient,
+  table: "doctors" | "facilities" | "cities" | "specialties",
+  rows: Record<string, unknown>[],
+  errors: ImportError[]
+) {
+  const stripped = new Set<string>()
+  let nextLog = 100
+
+  async function upsertOnce(payload: Record<string, unknown>[]) {
+    let current = payload.map((row) => {
+      const copy = { ...row }
+      for (const column of stripped) delete copy[column]
+      return copy
+    })
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const { error } = await supabase.from(table).upsert(current, { onConflict: "slug" })
+      if (!error) return
+      if (isTransient(error.message) && attempt < 4) {
+        console.log(`${table}: мрежова грешка при запис, нов опит ${attempt + 2}/5`)
+        await wait(1000 * (attempt + 1))
+        continue
+      }
+      const missing = error.message.match(/Could not find the '([^']+)' column/)
+      if (!missing) throw new Error(error.message)
+      const column = missing[1]
+      if (!stripped.has(column)) {
+        console.log(`Колоната ${table}.${column} липсва — импортът продължава без нея.`)
+        if (column === "source") {
+          console.log("Пусни supabase/migrations/004_legacy_source.sql в Supabase SQL Editor, ако искаш source = legacy_wp.")
+        }
+      }
+      stripped.add(column)
+      current = current.map((row) => {
+        const copy = { ...row }
+        delete copy[column]
+        return copy
+      })
+    }
+    throw new Error("upsert не мина")
+  }
+
+  for (let index = 0; index < rows.length; index += BATCH) {
+    const slice = rows.slice(index, index + BATCH)
+    try {
+      await upsertOnce(slice)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      for (const row of slice) {
+        try {
+          await upsertOnce([row])
+        } catch (rowError) {
+          errors.push({
+            slug: String(row.slug ?? ""),
+            message: rowError instanceof Error ? rowError.message : message,
+            stage: table,
+          })
+        }
+      }
+    }
+    const done = Math.min(index + BATCH, rows.length)
+    if (done >= nextLog || done === rows.length) {
+      console.log(`${table}: ${done}/${rows.length}`)
+      nextLog += 100
+    }
+  }
+}
+
+export async function runWpImport(full: boolean) {
   loadEnvFile(path.join(root, ".env.local"))
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -625,12 +728,17 @@ async function main() {
 
   const buckets: Record<Group, Candidate[]> = { specialists: [], hospitals: [], centers: [], labs: [] }
   const seenPosts = new Set<string>()
+  let skippedPages = 0
 
   for (const post of posts) {
-    if (post.status !== "publish" || post.type !== "post" || !post.slug || seenPosts.has(post.id)) continue
+    if (post.status !== "publish" || !post.slug || seenPosts.has(post.id)) continue
+    if (post.type !== "post") {
+      if (full && post.type === "page") skippedPages++
+      continue
+    }
     const termIds = termsByPost.get(post.id) ?? []
     const membership = (Object.keys(groups) as Group[]).filter((group) => termIds.some((id) => groups[group].ids.has(id)))
-    if (membership.length === 0) continue
+    if (membership.length === 0 && !full) continue
 
     const person = personTitle(post.title)
     const place = facilityTitle(post.title)
@@ -643,7 +751,11 @@ async function main() {
     else if (place && /лаборатор/i.test(post.title)) group = "labs"
     else if (place && /болниц|мбал|\bсбр\b/i.test(post.title)) group = "hospitals"
     else if (place) group = "centers"
+    else if (full && /д-р|доктор|проф\.|доц\./i.test(post.title)) group = "specialists"
+    else if (full) group = "centers"
     if (!group) continue
+    const facilityType =
+      full && membership.length === 0 && group !== "specialists" && !place ? "other" : groups[group].facilityType
 
     const postTerms = termIds.map((id) => byId.get(id)).filter((term): term is Term => Boolean(term))
     const specialties = uniqueTerms(
@@ -663,25 +775,52 @@ async function main() {
     )
     const resolvedCities = cities.length > 0 ? cities : inferCities(post, cityByName)
 
-    buckets[group].push({ post, group, facilityType: groups[group].facilityType, specialties, cities: resolvedCities })
+    buckets[group].push({ post, group, facilityType, specialties, cities: resolvedCities })
     seenPosts.add(post.id)
   }
 
   console.log(
     `Кандидати: специалисти ${buckets.specialists.length}, болници ${buckets.hospitals.length}, центрове ${buckets.centers.length}, лаборатории ${buckets.labs.length}`
   )
+  if (full) console.log(`Пропуснати страници (не са профили): ${skippedPages}`)
 
-  const selected = [
-    ...pickSpread(buckets.specialists, LIMITS.specialists, true),
-    ...pickSpread(buckets.hospitals, LIMITS.hospitals, false),
-    ...pickSpread(buckets.centers, LIMITS.centers, false),
-    ...pickSpread(buckets.labs, LIMITS.labs, false),
-  ]
+  const selected = full
+    ? [...buckets.specialists, ...buckets.hospitals, ...buckets.centers, ...buckets.labs]
+    : [
+        ...pickSpread(buckets.specialists, LIMITS.specialists, true),
+        ...pickSpread(buckets.hospitals, LIMITS.hospitals, false),
+        ...pickSpread(buckets.centers, LIMITS.centers, false),
+        ...pickSpread(buckets.labs, LIMITS.labs, false),
+      ]
 
-  const prepared = selected.map(prepare).filter((item): item is Prepared => Boolean(item))
+  const prepared: Prepared[] = []
+  const errors: ImportError[] = []
+  for (let index = 0; index < selected.length; index++) {
+    const candidate = selected[index]
+    try {
+      const item = prepare(candidate)
+      if (item) prepared.push(item)
+      else errors.push({ slug: candidate.post.slug, message: "празен адрес", stage: "prepare" })
+    } catch (error) {
+      errors.push({
+        slug: candidate.post.slug,
+        message: error instanceof Error ? error.message : String(error),
+        stage: "prepare",
+      })
+    }
+    if (full && (index + 1) % 100 === 0) console.log(`Подготвени: ${index + 1}/${selected.length}`)
+  }
+  if (full && selected.length > 0 && selected.length % 100 !== 0) {
+    console.log(`Подготвени: ${selected.length}/${selected.length}`)
+  }
+
   const usedSlugs = new Set<string>()
+  let duplicateSlugs = 0
   const unique = prepared.filter((item) => {
-    if (usedSlugs.has(item.slug)) return false
+    if (usedSlugs.has(item.slug)) {
+      duplicateSlugs++
+      return false
+    }
     usedSlugs.add(item.slug)
     return true
   })
@@ -693,44 +832,79 @@ async function main() {
     for (const specialty of candidate.specialties) specialtyCatalog.set(specialty.slug, { name: specialty.name, slug: specialty.slug })
   }
 
-  const doctors = unique.filter((item) => item.kind === "doctor")
-  const facilities = unique.filter((item) => item.kind === "facility")
+  const doctors = unique.filter((item) => item.kind === "doctor" && !(full && seedSlugs.has(item.slug)))
+  const facilities = unique.filter((item) => item.kind === "facility" && !(full && seedSlugs.has(item.slug)))
+  const protectedSeed = full ? unique.filter((item) => seedSlugs.has(item.slug)).length : 0
   const supabase = createClient(url, key, { auth: { persistSession: false } })
 
-  await upsertFlexible(supabase, "cities", [...catalog.values()])
-  await upsertFlexible(supabase, "specialties", [...specialtyCatalog.values()])
+  if (full) {
+    await upsertInBatches(supabase, "cities", [...catalog.values()], errors)
+    await upsertInBatches(supabase, "specialties", [...specialtyCatalog.values()], errors)
+  } else {
+    await upsertFlexible(supabase, "cities", [...catalog.values()])
+    await upsertFlexible(supabase, "specialties", [...specialtyCatalog.values()])
+  }
 
   const claimedDoctors = await claimedSlugs(supabase, "doctors", doctors.map((item) => item.slug))
   const claimedFacilities = await claimedSlugs(supabase, "facilities", facilities.map((item) => item.slug))
   const doctorRows = doctors.filter((item) => !claimedDoctors.has(item.slug))
   const facilityRows = facilities.filter((item) => !claimedFacilities.has(item.slug))
 
-  await upsertFlexible(supabase, "doctors", doctorRows.map((item) => item.row))
-  await upsertFlexible(supabase, "facilities", facilityRows.map((item) => item.row))
+  if (full) {
+    await upsertInBatches(supabase, "doctors", doctorRows.map((item) => item.row), errors)
+    await upsertInBatches(supabase, "facilities", facilityRows.map((item) => item.row), errors)
+  } else {
+    await upsertFlexible(supabase, "doctors", doctorRows.map((item) => item.row))
+    await upsertFlexible(supabase, "facilities", facilityRows.map((item) => item.row))
+  }
 
-  console.log(`Импортирани лекари: ${doctorRows.length}`)
-  console.log(`Импортирани заведения: ${facilityRows.length}`)
+  const doctorErrors = new Set(errors.filter((error) => error.stage === "doctors").map((error) => error.slug))
+  const facilityErrors = new Set(errors.filter((error) => error.stage === "facilities").map((error) => error.slug))
+  const importedDoctors = doctorRows.length - doctorErrors.size
+  const importedFacilities = facilityRows.length - facilityErrors.size
+
+  console.log(`Импортирани лекари: ${full ? importedDoctors : doctorRows.length}`)
+  console.log(`Импортирани заведения: ${full ? importedFacilities : facilityRows.length}`)
+  if (full) console.log(`Грешки: ${errors.length}`)
   if (claimedDoctors.size || claimedFacilities.size) {
     console.log(`Пропуснати вече заявени профили: ${claimedDoctors.size + claimedFacilities.size}`)
   }
+  if (full && duplicateSlugs) console.log(`Пропуснати повторни адреси: ${duplicateSlugs}`)
+  if (protectedSeed) console.log(`Пропуснати примерни профили от seed: ${protectedSeed}`)
 
-  console.log("\nЛекари:")
-  for (const item of doctorRows) console.log(`- /${item.slug}`)
-  console.log("\nЗаведения:")
-  for (const item of facilityRows) console.log(`- /${item.slug}`)
+  if (!full) {
+    console.log("\nЛекари:")
+    for (const item of doctorRows) console.log(`- /${item.slug}`)
+    console.log("\nЗаведения:")
+    for (const item of facilityRows) console.log(`- /${item.slug}`)
+  }
 
-  const examples = [...unique].sort((left, right) => exampleScore(right) - exampleScore(left)).slice(0, 3)
-  console.log("\nПримери:")
-  for (const item of examples) {
-    console.log(`- ${item.title}`)
-    console.log(`  slug: /${item.slug}`)
-    console.log(`  phone: ${item.phone ?? "—"}`)
-    console.log(`  email: ${item.email ?? "—"}`)
-    console.log(`  image: ${item.image ?? "—"}`)
+  if (full) {
+    const cyrillic = unique.filter((item) => /\p{Script=Cyrillic}/u.test(item.slug) && !item.slug.includes("%"))
+    const latin = unique.filter((item) => /[a-z]/i.test(item.slug) && !item.slug.includes("%") && !/\p{Script=Cyrillic}/u.test(item.slug))
+    console.log("\nПримерни адреси:")
+    for (const item of [...cyrillic.slice(0, 5), ...latin.slice(0, 5)]) console.log(`- /${item.slug}`)
+    if (errors.length) {
+      console.log("\nПърви грешки:")
+      for (const error of errors.slice(0, 10)) console.log(`- ${error.slug || "—"}: ${error.message}`)
+    }
+  } else {
+    const examples = [...unique].sort((left, right) => exampleScore(right) - exampleScore(left)).slice(0, 3)
+    console.log("\nПримери:")
+    for (const item of examples) {
+      console.log(`- ${item.title}`)
+      console.log(`  slug: /${item.slug}`)
+      console.log(`  phone: ${item.phone ?? "—"}`)
+      console.log(`  email: ${item.email ?? "—"}`)
+      console.log(`  image: ${item.image ?? "—"}`)
+    }
   }
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : error)
-  process.exit(1)
-})
+const isDirect = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+if (isDirect) {
+  runWpImport(false).catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : error)
+    process.exit(1)
+  })
+}
