@@ -1,3 +1,4 @@
+import { humanLabel, specialtyDisplay } from "@/lib/content/normalize"
 import { popularCities, popularSpecialties, labelFromSlug } from "@/lib/content/placeholders"
 import { getCities, getSpecialties } from "@/lib/supabase/queries"
 import { getPublishedTerms } from "@/lib/supabase/queries/search"
@@ -24,9 +25,14 @@ function canonicalSlug(slugs: string[]) {
   return [...slugs].sort((left, right) => left.length - right.length || left.localeCompare(right, "bg"))[0]
 }
 
+function catalogLabel(value: string, mode: "city" | "specialty") {
+  return mode === "specialty" ? specialtyDisplay(value) : humanLabel(value)
+}
+
 export function uniqueCatalogOptions(
   catalog: readonly { name: string; slug: string; description?: string | null }[],
-  usedSlugs: readonly string[]
+  usedSlugs: readonly string[],
+  mode: "city" | "specialty" = "specialty",
 ): CatalogOption[] {
   const bySlug = new Map<string, { names: string[]; description?: string | null }>()
   for (const row of catalog) {
@@ -45,7 +51,8 @@ export function uniqueCatalogOptions(
 
   const groups = new Map<string, { names: string[]; slugs: string[]; description?: string | null }>()
   for (const [slug, info] of bySlug) {
-    const name = chooseName(info.names.length > 0 ? info.names : [labelFromSlug(slug)])
+    const name = catalogLabel(chooseName(info.names.length > 0 ? info.names : [labelFromSlug(slug)]), mode)
+    if (!name) continue
     const key = name.toLocaleLowerCase("bg").replace(/\s+/g, " ").trim()
     const group = groups.get(key) ?? { names: [], slugs: [] }
     group.names.push(name)
@@ -95,8 +102,8 @@ export async function getSearchOptions() {
     safeQuery(getPublishedTerms, { specialties: [], cities: [] }),
   ])
 
-  const specialties = uniqueCatalogOptions(specialtyRows, used.specialties)
-  const cities = uniqueCatalogOptions(cityRows, used.cities)
+  const specialties = uniqueCatalogOptions(specialtyRows, used.specialties, "specialty")
+  const cities = uniqueCatalogOptions(cityRows, used.cities, "city")
 
   return {
     specialties: specialties.length > 0 ? specialties : withAliases(popularSpecialties),

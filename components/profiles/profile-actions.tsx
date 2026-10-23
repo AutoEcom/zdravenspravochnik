@@ -1,5 +1,6 @@
 import { Globe, Mail, Phone } from "lucide-react"
 
+import { ClaimProfileButton } from "@/components/profiles/claim-profile-button"
 import { ShareButton } from "@/components/profiles/share-button"
 import { buttonVariants } from "@/components/ui/button"
 
@@ -9,19 +10,24 @@ export function ProfileActions({
   website,
   shareTitle,
   shareUrl,
+  claimHref,
+  claimed,
 }: {
   phone: string | null
   email: string | null
   website: string | null
   shareTitle: string
   shareUrl: string
+  claimHref: string
+  claimed: boolean
 }) {
   return (
     <nav
       aria-label="Бързи действия"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-white/60 glass px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:static md:rounded-2xl md:border md:p-4"
     >
-      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-4">
+      <div className="mx-auto flex max-w-5xl flex-col gap-2">
+      <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-4">
         {phone ? (
           <a
             href={`tel:${phone}`}
@@ -52,6 +58,8 @@ export function ProfileActions({
           </a>
         ) : null}
         <ShareButton title={shareTitle} url={shareUrl} />
+      </div>
+      <ClaimProfileButton href={claimHref} claimed={claimed} />
       </div>
     </nav>
   )

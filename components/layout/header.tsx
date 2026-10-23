@@ -6,7 +6,7 @@ import { LogoMark } from "@/components/layout/logo-mark"
 
 const nav: { href: string; label: string; accent?: boolean }[] = [
   { href: "/specialisti", label: "Специалисти" },
-  { href: "/zavedenia", label: "Заведения" },
+  { href: "/zavedenia", label: "Здравни заведения" },
   { href: "/jensko-zdrave", label: "Женско здраве", accent: true },
   { href: "/articles", label: "Полезно" },
 ]
@@ -76,7 +76,7 @@ export function Header() {
               <Menu className="size-5" />
             </summary>
             <nav
-              className="glass absolute right-0 z-50 mt-2 grid w-56 gap-1 rounded-2xl p-2"
+              className="glass absolute right-0 z-50 mt-2 grid w-64 gap-1 rounded-2xl p-2"
               aria-label="Мобилна"
             >
               {nav.map((item) => (

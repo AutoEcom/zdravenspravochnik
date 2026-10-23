@@ -52,7 +52,7 @@ export function DoctorProfile({
   ]
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 pb-36 sm:py-14 md:pb-16">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 pb-48 sm:py-14 md:pb-16">
       <JsonLd
         data={[
           physicianJsonLd(doctor, { specialties: specialtyNames, locality }),
@@ -102,6 +102,8 @@ export function DoctorProfile({
         website={doctor.website}
         shareTitle={name}
         shareUrl={absoluteUrl(`/${doctor.slug}`)}
+        claimHref={`/claim?${new URLSearchParams({ type: "doctor", slug: doctor.slug }).toString()}`}
+        claimed={doctor.is_claimed}
       />
 
       {doctor.bio ? (

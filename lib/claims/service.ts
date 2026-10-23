@@ -117,6 +117,57 @@ export async function searchClaimTargets(
   }
 }
 
+function claimSlug(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+  try {
+    return decodeURIComponent(trimmed).normalize("NFC")
+  } catch {
+    return trimmed.normalize("NFC")
+  }
+}
+
+export async function findClaimTargetBySlug(
+  targetType: ClaimTargetType,
+  slug: string,
+): Promise<ClaimSearchHit | null> {
+  const safe = claimSlug(slug)
+  if (!safe || (targetType !== "doctor" && targetType !== "facility")) return null
+  const admin = createAdminClient()
+
+  if (targetType === "doctor") {
+    const { data, error } = await admin
+      .from("doctors")
+      .select("id, slug, full_name, title, cities, is_claimed")
+      .eq("status", "published")
+      .eq("slug", safe)
+      .maybeSingle()
+    if (error || !data) return null
+    return {
+      id: data.id,
+      slug: data.slug,
+      name: displayName(data.title, data.full_name),
+      meta: data.cities[0] ?? data.slug,
+      claimed: data.is_claimed,
+    }
+  }
+
+  const { data, error } = await admin
+    .from("facilities")
+    .select("id, slug, name, cities, is_claimed")
+    .eq("status", "published")
+    .eq("slug", safe)
+    .maybeSingle()
+  if (error || !data) return null
+  return {
+    id: data.id,
+    slug: data.slug,
+    name: data.name,
+    meta: data.cities[0] ?? data.slug,
+    claimed: data.is_claimed,
+  }
+}
+
 async function loadTarget(targetType: ClaimTargetType, targetId: string) {
   const admin = createAdminClient()
   if (targetType === "doctor") {

@@ -19,11 +19,19 @@ type ClaimSearchHit = {
   claimed: boolean
 }
 
-export function ClaimForm() {
-  const [targetType, setTargetType] = useState<TargetType>("doctor")
-  const [query, setQuery] = useState("")
-  const [hits, setHits] = useState<ClaimSearchHit[]>([])
-  const [selected, setSelected] = useState<ClaimSearchHit | null>(null)
+export function ClaimForm({
+  initialType = "doctor",
+  initialQuery = "",
+  initialHit = null,
+}: {
+  initialType?: TargetType
+  initialQuery?: string
+  initialHit?: ClaimSearchHit | null
+}) {
+  const [targetType, setTargetType] = useState<TargetType>(initialType)
+  const [query, setQuery] = useState(initialQuery)
+  const [hits, setHits] = useState<ClaimSearchHit[]>(initialHit ? [initialHit] : [])
+  const [selected, setSelected] = useState<ClaimSearchHit | null>(initialHit && !initialHit.claimed ? initialHit : null)
   const [email, setEmail] = useState("")
   const [searching, setSearching] = useState(false)
   const [submitting, setSubmitting] = useState(false)

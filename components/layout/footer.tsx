@@ -3,7 +3,7 @@ import Link from "next/link"
 const links = [
   { href: "/", label: "Начало" },
   { href: "/specialisti", label: "Специалисти" },
-  { href: "/zavedenia", label: "Заведения" },
+  { href: "/zavedenia", label: "Здравни заведения" },
   { href: "/jensko-zdrave", label: "Женско здраве" },
   { href: "/articles", label: "Полезно" },
   { href: "/za-nas", label: "За нас" },

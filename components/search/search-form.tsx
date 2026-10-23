@@ -11,17 +11,20 @@ type Option = {
 type SearchFormProps = {
   specialties: readonly Option[]
   cities: readonly Option[]
+  action?: string
+  facilityTypes?: readonly { value: string; label: string }[]
   defaults?: {
     q?: string
     specialty?: string
     city?: string
     kind?: string
+    type?: string
   }
 }
 
-export function SearchForm({ specialties, cities, defaults }: SearchFormProps) {
+export function SearchForm({ specialties, cities, defaults, action = "/search", facilityTypes }: SearchFormProps) {
   return (
-    <form action="/search" className="glass-panel grid gap-3 p-4 sm:p-6 lg:grid-cols-[1fr_1fr_1.3fr_auto] lg:items-end">
+    <form action={action} className={`glass-panel grid gap-3 p-4 sm:p-6 lg:items-end ${facilityTypes ? "lg:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.2fr_auto]" : "lg:grid-cols-[1fr_1fr_1.3fr_auto]"}`}>
       <label className="grid gap-2 text-sm font-medium" htmlFor="search-specialty">
         Специалност
         <select
@@ -54,6 +57,19 @@ export function SearchForm({ specialties, cities, defaults }: SearchFormProps) {
           ))}
         </select>
       </label>
+      {facilityTypes ? (
+        <label className="grid gap-2 text-sm font-medium" htmlFor="search-type">
+          Тип заведение
+          <select id="search-type" name="type" defaultValue={defaults?.type ?? ""} className={fieldClass}>
+            <option value="">Всички</option>
+            {facilityTypes.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <label className="grid gap-2 text-sm font-medium" htmlFor="search-query">
         Свободен текст
         <input

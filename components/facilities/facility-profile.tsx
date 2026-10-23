@@ -46,12 +46,12 @@ export function FacilityProfile({
   const faqs = facilityFaqs(facility, specialtyNames, locality, kind)
   const crumbs = [
     { name: "Начало", path: "/" },
-    { name: "Заведения", path: "/zavedenia" },
+    { name: "Здравни заведения", path: "/zavedenia" },
     { name: facility.name, path: `/${facility.slug}` },
   ]
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 pb-36 sm:py-14 md:pb-16">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 pb-48 sm:py-14 md:pb-16">
       <JsonLd
         data={[
           medicalClinicJsonLd(facility, { specialties: specialtyNames, locality }),
@@ -104,6 +104,8 @@ export function FacilityProfile({
         website={facility.website}
         shareTitle={facility.name}
         shareUrl={absoluteUrl(`/${facility.slug}`)}
+        claimHref={`/claim?${new URLSearchParams({ type: "facility", slug: facility.slug }).toString()}`}
+        claimed={facility.is_claimed}
       />
 
       {facility.description ? (

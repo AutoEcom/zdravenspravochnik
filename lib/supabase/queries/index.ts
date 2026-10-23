@@ -16,6 +16,7 @@ export { getCities } from "@/lib/supabase/queries/cities"
 export {
   getPublishedDoctors,
   getPublishedFacilities,
+  searchDirectory,
   searchDoctors,
   searchFacilities,
 } from "@/lib/supabase/queries/search"
