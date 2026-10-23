@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation"
 import { DoctorProfile } from "@/components/doctors/doctor-profile"
 import { FacilityProfile } from "@/components/facilities/facility-profile"
 import { createPageMetadata } from "@/components/seo/page-meta"
+import { cleanDisplayName } from "@/lib/content/display-name"
 import { articleCover } from "@/lib/content/slug"
 import { getSearchOptions } from "@/lib/content/catalog"
 import { displayName, presentDoctor, presentFacility } from "@/lib/content/present"
@@ -25,29 +26,62 @@ function normalizePublicSlug(slug: string) {
   }
 }
 
+function profileBlocksArticle(label: string, slug: string, phone: string | null, nhif: boolean | null, claimed: boolean) {
+  if (claimed || phone || nhif) return true
+  if (/болниц|мбал|умбал|дкц|център|лаборатор|клиник|хоспис|диспансер|аптек|санаториум|\bсбр\b|поликлиник|еоод/i.test(label)) {
+    return true
+  }
+  const personName = /^(?:(?:проф|доц)\.\s*)?(?:д-р|доктор)\b/i.test(label.trim())
+  const personSlug = /^(?:д-р|доктор|проф|доц|d-r)[-]/i.test(slug)
+  return personName && personSlug
+}
+
 const resolvePublicSlug = cache(async (slug: string) => {
   const normalized = normalizePublicSlug(slug)
+  let doctor: Awaited<ReturnType<typeof getDoctorBySlug>> = null
+  let facility: Awaited<ReturnType<typeof getFacilityBySlug>> = null
+  let article: Awaited<ReturnType<typeof getArticleBySlug>> = null
+
   try {
-    const doctor = await getDoctorBySlug(normalized)
-    if (doctor) return { kind: "doctor" as const, doctor }
+    doctor = await getDoctorBySlug(normalized)
   } catch {
-    // A missing doctor table should still allow the next lookup.
+    doctor = null
   }
 
   try {
-    const facility = await getFacilityBySlug(normalized)
-    if (facility) return { kind: "facility" as const, facility }
+    facility = await getFacilityBySlug(normalized)
   } catch {
-    // Continue to articles when the facilities table is unavailable.
+    facility = null
   }
 
   try {
-    const article = await getArticleBySlug(normalized)
-    if (article) return { kind: "article" as const, article }
+    article = await getArticleBySlug(normalized)
   } catch {
-    return null
+    article = null
   }
 
+  const blocked =
+    (doctor &&
+      profileBlocksArticle(
+        displayName(doctor.title, doctor.full_name),
+        doctor.slug,
+        doctor.phone,
+        doctor.accepts_nhif,
+        doctor.is_claimed
+      )) ||
+    (facility &&
+      profileBlocksArticle(
+        cleanDisplayName(facility.name),
+        facility.slug,
+        facility.phone,
+        facility.accepts_nhif,
+        facility.is_claimed
+      ))
+
+  if (article && !blocked) return { kind: "article" as const, article }
+  if (doctor) return { kind: "doctor" as const, doctor }
+  if (facility) return { kind: "facility" as const, facility }
+  if (article) return { kind: "article" as const, article }
   return null
 })
 
@@ -61,7 +95,11 @@ function descriptionFor(match: NonNullable<Awaited<ReturnType<typeof resolvePubl
   }
 
   if (match.kind === "facility") {
-    return match.facility.short_description || match.facility.description?.slice(0, 160) || match.facility.name
+    return (
+      match.facility.short_description ||
+      match.facility.description?.slice(0, 160) ||
+      cleanDisplayName(match.facility.name)
+    )
   }
 
   return match.article.excerpt || match.article.content.slice(0, 160)
@@ -88,7 +126,7 @@ export async function generateMetadata({
     match.kind === "doctor"
       ? displayName(match.doctor.title, match.doctor.full_name)
       : match.kind === "facility"
-        ? match.facility.name
+        ? cleanDisplayName(match.facility.name)
         : match.article.title
 
   const image =
@@ -115,7 +153,7 @@ export default async function PublicSlugPage({
   const match = await resolvePublicSlug(slug)
   if (!match) notFound()
 
-  if (match.kind === "article") permanentRedirect(`/articles/${match.article.slug}`)
+  if (match.kind === "article") permanentRedirect(`/articles/${encodeURIComponent(match.article.slug)}`)
 
   const { specialties, cities } = await getSearchOptions()
 

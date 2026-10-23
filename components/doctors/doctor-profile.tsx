@@ -13,6 +13,7 @@ import { JsonLd } from "@/components/seo/json-ld"
 import { breadcrumbJsonLd, faqPageJsonLd, physicianJsonLd } from "@/components/seo/schemas"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
+import { cleanDisplayName } from "@/lib/content/display-name"
 import { displayName, namesFor, reviewLabel, type NamedSlug } from "@/lib/content/present"
 import { absoluteUrl } from "@/lib/site"
 import type { Doctor } from "@/types/database"
@@ -73,7 +74,7 @@ export function DoctorProfile({
           />
         ) : (
           <div className="flex size-20 items-center justify-center rounded-2xl bg-primary text-2xl font-semibold text-primary-foreground sm:size-24">
-            {initials(doctor.full_name)}
+            {initials(cleanDisplayName(doctor.full_name))}
           </div>
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-3">

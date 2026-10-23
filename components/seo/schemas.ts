@@ -1,5 +1,6 @@
 import type { Article, Doctor, Facility } from "@/types/database"
 
+import { cleanDisplayName } from "@/lib/content/display-name"
 import { openingHoursSpecification } from "@/lib/content/present"
 import { absoluteUrl, siteConfig } from "@/lib/site"
 
@@ -65,7 +66,7 @@ export function physicianJsonLd(
   doctor: Doctor,
   labels?: { specialties?: string[]; locality?: string }
 ) {
-  const name = [doctor.title, doctor.full_name].filter(Boolean).join(" ")
+  const name = cleanDisplayName([doctor.title, doctor.full_name].filter(Boolean).join(" "))
   const specialties = labels?.specialties?.length ? labels.specialties : doctor.specialties
   const pageUrl = absoluteUrl(`/${doctor.slug}`)
 
@@ -121,7 +122,7 @@ export function medicalClinicJsonLd(
     "@context": "https://schema.org",
     "@type": "MedicalClinic",
     "@id": `${pageUrl}#clinic`,
-    name: facility.name,
+    name: cleanDisplayName(facility.name),
     url: pageUrl,
     mainEntityOfPage: pageUrl,
     description: facility.short_description || facility.description,
@@ -166,7 +167,7 @@ export function articleJsonLd(article: Article, cover: string | null) {
     "@type": "Article",
     "@id": `${pageUrl}#article`,
     headline: article.title,
-    description: article.excerpt || body.slice(0, 160),
+    description: article.meta_description || article.excerpt || body.slice(0, 160),
     articleBody: body,
     image: cover ? [cover] : undefined,
     datePublished: article.published_at,

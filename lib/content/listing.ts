@@ -22,6 +22,6 @@ export function withPage(path: string, params: Record<string, string | undefined
   return search ? `${path}?${search}` : path
 }
 
-export function pageCount(total: number) {
-  return Math.max(1, Math.ceil(total / PAGE_SIZE))
+export function pageCount(total: number, size = PAGE_SIZE) {
+  return Math.max(1, Math.ceil(total / size))
 }

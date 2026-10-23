@@ -13,6 +13,7 @@ import { JsonLd } from "@/components/seo/json-ld"
 import { breadcrumbJsonLd, faqPageJsonLd, medicalClinicJsonLd } from "@/components/seo/schemas"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
+import { cleanDisplayName } from "@/lib/content/display-name"
 import { facilityTypeLabel, namesFor, reviewLabel, type NamedSlug } from "@/lib/content/present"
 import { absoluteUrl } from "@/lib/site"
 import type { Facility } from "@/types/database"
@@ -39,15 +40,16 @@ export function FacilityProfile({
   cities: readonly NamedSlug[]
   related: FacilitySummary[]
 }) {
+  const name = cleanDisplayName(facility.name)
   const specialtyNames = namesFor(facility.specialties, specialties)
   const cityNames = namesFor(facility.cities, cities)
   const locality = facility.cities[0] ? cities.find((city) => city.slug === facility.cities[0])?.name : undefined
-  const kind = facilityTypeLabel(facility.facility_type, facility.name)
-  const faqs = facilityFaqs(facility, specialtyNames, locality, kind)
+  const kind = facilityTypeLabel(facility.facility_type, name)
+  const faqs = facilityFaqs(facility, name, specialtyNames, locality, kind)
   const crumbs = [
     { name: "Начало", path: "/" },
     { name: "Здравни заведения", path: "/zavedenia" },
-    { name: facility.name, path: `/${facility.slug}` },
+    { name, path: `/${facility.slug}` },
   ]
 
   return (
@@ -64,7 +66,7 @@ export function FacilityProfile({
         {facility.photo_url ? (
           <Image
             src={facility.photo_url}
-            alt={facility.name}
+            alt={name}
             width={96}
             height={96}
             unoptimized
@@ -72,7 +74,7 @@ export function FacilityProfile({
           />
         ) : (
           <div className="flex size-20 items-center justify-center rounded-2xl bg-primary text-2xl font-semibold text-primary-foreground sm:size-24">
-            {initials(facility.name) || "ЗС"}
+            {initials(name) || "ЗС"}
           </div>
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-3">
@@ -83,7 +85,7 @@ export function FacilityProfile({
             {facility.accepts_children ? <Badge variant="success">Деца</Badge> : null}
             {facility.online_consultation ? <Badge variant="outline">Онлайн</Badge> : null}
           </div>
-          <h1>{facility.name}</h1>
+          <h1>{name}</h1>
           <p className="text-muted-foreground">{cityNames.join(", ") || "България"}</p>
           {facility.review_count > 0 ? (
             <p className="flex items-center gap-1.5 text-sm font-medium">
@@ -102,7 +104,7 @@ export function FacilityProfile({
         phone={facility.phone}
         email={facility.email}
         website={facility.website}
-        shareTitle={facility.name}
+        shareTitle={name}
         shareUrl={absoluteUrl(`/${facility.slug}`)}
         claimHref={`/claim?${new URLSearchParams({ type: "facility", slug: facility.slug }).toString()}`}
         claimed={facility.is_claimed}
@@ -160,6 +162,7 @@ export function FacilityProfile({
 
 function facilityFaqs(
   facility: Facility,
+  name: string,
   specialtyNames: string[],
   locality: string | undefined,
   kind: string
@@ -173,7 +176,7 @@ function facilityFaqs(
 
   return [
     {
-      question: `Как да запиша час в ${facility.name}?`,
+      question: `Как да запиша час в ${name}?`,
       answer: contact.length
         ? `За час ${contact.join(" или ")}. Регистратурата потвърждава часа и нужните документи.`
         : "Контактът на регистратурата е посочен в профила, когато е публикуван.",

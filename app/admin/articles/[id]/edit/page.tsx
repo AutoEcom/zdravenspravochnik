@@ -45,6 +45,9 @@ export default async function EditArticlePage({
         content={data.content}
         status={status}
         coverImageUrl={articleCover(data) ?? ""}
+        metaTitle={data.meta_title ?? ""}
+        metaDescription={data.meta_description ?? ""}
+        ogImageUrl={data.og_image_url ?? ""}
         saved={saved === "1"}
       />
     </AccountShell>

@@ -10,7 +10,7 @@ export {
   getFacilityBySlug,
   getFeaturedFacilities,
 } from "@/lib/supabase/queries/facilities"
-export { getArticleBySlug, getPublishedArticles } from "@/lib/supabase/queries/articles"
+export { ARTICLE_PAGE_SIZE, getArticleBySlug, getPublishedArticles, getPublishedArticlesPage } from "@/lib/supabase/queries/articles"
 export { getSpecialties } from "@/lib/supabase/queries/specialties"
 export { getCities } from "@/lib/supabase/queries/cities"
 export {

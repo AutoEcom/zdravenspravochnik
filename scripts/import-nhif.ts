@@ -3,6 +3,9 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
+import { cleanDisplayName } from "../lib/content/display-name"
+import { latinSlug } from "../lib/content/slug"
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const BATCH = 50
 
@@ -141,21 +144,7 @@ function mockStats(key: string, tier: 0 | 1 | 2) {
 }
 
 function slugify(value: string) {
-  const map: Record<string, string> = {
-    а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ж: "zh", з: "z", и: "i", й: "y",
-    к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t", у: "u",
-    ф: "f", х: "h", ц: "ts", ч: "ch", ш: "sh", щ: "sht", ъ: "a", ь: "y", ю: "yu", я: "ya",
-  }
-  return value
-    .trim()
-    .toLocaleLowerCase("bg")
-    .split("")
-    .map((char) => map[char] ?? char)
-    .join("")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
+  return latinSlug(value)
 }
 
 function titleCase(value: string) {
@@ -453,7 +442,7 @@ async function main() {
     const type = facilityTypeFor(row.category, name)
     const tier = workplaceTier(row.category, name)
     const stats = mockStats(`${name}|${row.citySlug}|${address}`, tier)
-    const slug = uniqueSlug(slugify(`${name} ${row.citySlug}`), usedSlugs)
+    const slug = uniqueSlug(slugify(`${cleanDisplayName(name)} ${row.citySlug}`), usedSlugs)
     if (addressId) facilityAddress.add(addressId)
     if (phoneId) facilityPhone.set(phoneId, addressKey)
     if (!addressKey && !phone) facilityCity.add(cityId)

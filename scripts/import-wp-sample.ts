@@ -106,14 +106,14 @@ function parseCsv(text: string) {
   return rows
 }
 
-function readCsv(file: string) {
+export function readCsv(file: string) {
   const rows = parseCsv(readFileSync(path.join(importDir, file), "utf8"))
   const [header, ...body] = rows
   if (!header) throw new Error(`Empty CSV: ${file}`)
   return body.filter((row) => row.some((cell) => cell.trim()))
 }
 
-function decodeSlug(value: string) {
+export function decodeSlug(value: string) {
   let current = value.trim()
   for (let pass = 0; pass < 2 && current.includes("%"); pass++) {
     try {
@@ -127,7 +127,7 @@ function decodeSlug(value: string) {
   return current.normalize("NFC")
 }
 
-function decodeEntities(value: string) {
+export function decodeEntities(value: string) {
   return value
     .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&amp;/gi, "&")
@@ -187,7 +187,7 @@ function escapeAttr(value: string) {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")
 }
 
-function plainText(html: string) {
+export function plainText(html: string) {
   return decodeEntities(html.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim()
 }
 
@@ -291,7 +291,7 @@ function pushParagraphs(chunks: string[], raw: string) {
   }
 }
 
-function readableHtml(source: string) {
+function readableHtml(source: string, max = 8000) {
   const simplified = simplifyHtml(source)
   const chunks: string[] = []
   const blocks = /<(ul|ol|h2|h3|h4)>[\s\S]*?<\/\1>|<img\b[^>]*>/gi
@@ -311,17 +311,17 @@ function readableHtml(source: string) {
     .replace(/<p>\s*<\/p>/gi, "")
     .replace(/<(strong|em)>\s*<\/\1>/gi, "")
     .trim()
-  if (html.length <= 8000) return html
-  const cut = html.slice(0, 8000)
+  if (html.length <= max) return html
+  const cut = html.slice(0, max)
   const end = cut.lastIndexOf(">")
   return (end > 0 ? cut.slice(0, end + 1) : cut).trim()
 }
 
-function cleanContent(html: string) {
+export function cleanContent(html: string, max = 8000) {
   const prepared = promoteShortcodeImages(decodeEntities(html).replace(/\u00a0/g, " "))
   const stripped = stripBuilderNoise(prepared)
   const images = imagesFrom(`${prepared}\n${stripped}`)
-  return { text: readableHtml(stripped), images }
+  return { text: readableHtml(stripped, max), images }
 }
 
 function phonesFrom(text: string) {
@@ -696,6 +696,14 @@ export async function runWpImport(full: boolean) {
     labs: { ids: descendants(children, LABS), facilityType: "laboratory" },
   }
 
+  const articleIds = new Set<string>()
+  for (const term of byId.values()) {
+    const name = term.name.toLocaleLowerCase("bg")
+    const articleCategory = term.id === "1" || name === "полезно" || name === "полезни съвети" || name === "статии" || name === "статия"
+    if (!articleCategory) continue
+    for (const id of descendants(children, term.id)) articleIds.add(id)
+  }
+
   const cityByName = new Map<string, Term>()
   for (const term of byId.values()) {
     const parent = byId.get(term.parent)
@@ -729,6 +737,7 @@ export async function runWpImport(full: boolean) {
   const buckets: Record<Group, Candidate[]> = { specialists: [], hospitals: [], centers: [], labs: [] }
   const seenPosts = new Set<string>()
   let skippedPages = 0
+  let skippedArticles = 0
 
   for (const post of posts) {
     if (post.status !== "publish" || !post.slug || seenPosts.has(post.id)) continue
@@ -737,6 +746,10 @@ export async function runWpImport(full: boolean) {
       continue
     }
     const termIds = termsByPost.get(post.id) ?? []
+    if (termIds.some((id) => articleIds.has(id))) {
+      skippedArticles++
+      continue
+    }
     const membership = (Object.keys(groups) as Group[]).filter((group) => termIds.some((id) => groups[group].ids.has(id)))
     if (membership.length === 0 && !full) continue
 
@@ -782,7 +795,10 @@ export async function runWpImport(full: boolean) {
   console.log(
     `Кандидати: специалисти ${buckets.specialists.length}, болници ${buckets.hospitals.length}, центрове ${buckets.centers.length}, лаборатории ${buckets.labs.length}`
   )
-  if (full) console.log(`Пропуснати страници (не са профили): ${skippedPages}`)
+  if (full) {
+    console.log(`Пропуснати страници (не са профили): ${skippedPages}`)
+    console.log(`Пропуснати статии (Полезно): ${skippedArticles}`)
+  }
 
   const selected = full
     ? [...buckets.specialists, ...buckets.hospitals, ...buckets.centers, ...buckets.labs]

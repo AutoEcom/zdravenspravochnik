@@ -19,7 +19,17 @@ export default async function NewArticlePage() {
 
   return (
     <AccountShell role="admin" eyebrow="Администрация" title="Нова статия">
-      <ArticleForm title="" slug="" excerpt="" content="" status="draft" coverImageUrl="" />
+      <ArticleForm
+        title=""
+        slug=""
+        excerpt=""
+        content=""
+        status="draft"
+        coverImageUrl=""
+        metaTitle=""
+        metaDescription=""
+        ogImageUrl=""
+      />
     </AccountShell>
   )
 }

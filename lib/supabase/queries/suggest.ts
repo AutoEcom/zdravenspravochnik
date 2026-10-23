@@ -1,3 +1,4 @@
+import { cleanDisplayName } from "@/lib/content/display-name"
 import { displayName } from "@/lib/content/present"
 import { cleanSearchText } from "@/lib/supabase/queries/search"
 import { createClient } from "@/lib/supabase/server"
@@ -54,7 +55,7 @@ export async function suggestProfiles(raw: string): Promise<ProfileSuggestion[]>
     ...(facilities.data ?? []).map((row) => ({
       kind: "facility" as const,
       slug: row.slug,
-      name: row.name,
+      name: cleanDisplayName(row.name),
       detail: "Здравно заведение",
     })),
   ]

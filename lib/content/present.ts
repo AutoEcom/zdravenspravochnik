@@ -1,5 +1,6 @@
 import type { DoctorSummary } from "@/components/doctors/doctor-card"
 import type { FacilitySummary } from "@/components/facilities/facility-card"
+import { cleanDisplayName } from "@/lib/content/display-name"
 import { catalogName } from "@/lib/content/placeholders"
 import type { Doctor, Facility, FacilityType, WorkingHours } from "@/types/database"
 
@@ -67,8 +68,8 @@ export function presentDoctor(
 ): DoctorSummary {
   return {
     slug: doctor.slug,
-    full_name: doctor.full_name,
-    title: doctor.title,
+    full_name: cleanDisplayName(doctor.full_name),
+    title: doctor.title ? cleanDisplayName(doctor.title) : doctor.title,
     specialties: namesFor(doctor.specialties, specialties),
     cities: namesFor(doctor.cities, cities),
     rating: doctor.rating,
@@ -88,8 +89,8 @@ export function presentFacility(
 ): FacilitySummary {
   return {
     slug: facility.slug,
-    name: facility.name,
-    facilityType: facilityTypeLabel(facility.facility_type, facility.name),
+    name: cleanDisplayName(facility.name),
+    facilityType: facilityTypeLabel(facility.facility_type, cleanDisplayName(facility.name)),
     specialties: namesFor(facility.specialties, specialties),
     cities: namesFor(facility.cities, cities),
     rating: facility.rating,
@@ -102,7 +103,7 @@ export function presentFacility(
 }
 
 export function displayName(title: string | null, name: string) {
-  return [title, name].filter(Boolean).join(" ")
+  return cleanDisplayName([title, name].filter(Boolean).join(" "))
 }
 
 const schemaDays: Record<keyof WorkingHours, string> = {

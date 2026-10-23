@@ -71,7 +71,12 @@ export default async function SpecialistsPage({ searchParams }: PageProps) {
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:py-14">
       <div className="max-w-3xl">
         <h1>Специалисти</h1>
-        <p className="mt-3 leading-relaxed text-muted-foreground">Публикувани лекари по специалност, град и име.</p>
+        <p className="mt-3 leading-relaxed text-muted-foreground">
+          Публикувани лекари по специалност, град и име.{" "}
+          <Link href="/articles" className="text-primary underline underline-offset-4">
+            Материали преди посещение
+          </Link>
+        </p>
       </div>
       <ListingHint />
       <SearchForm action="/specialisti" specialties={specialties} cities={cities} defaults={{ q, specialty, city }} />

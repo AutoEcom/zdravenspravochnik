@@ -21,14 +21,16 @@ export function ListingPagination({
   total,
   path,
   params,
+  pageSize = PAGE_SIZE,
 }: {
   page: number
   total: number
   path: string
   params: Record<string, string | undefined>
+  pageSize?: number
 }) {
-  const pages = pageCount(total)
-  if (total <= PAGE_SIZE) return null
+  const pages = pageCount(total, pageSize)
+  if (total <= pageSize) return null
   const items = pageItems(page, pages)
 
   return (

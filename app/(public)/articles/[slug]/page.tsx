@@ -5,7 +5,7 @@ import { ArticleView } from "@/components/articles/article-view"
 import { JsonLd } from "@/components/seo/json-ld"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { articleJsonLd, breadcrumbJsonLd } from "@/components/seo/schemas"
-import { articleCover } from "@/lib/content/slug"
+import { articleOgImage } from "@/lib/content/slug"
 import { getArticleBySlug } from "@/lib/supabase/queries"
 import { siteConfig } from "@/lib/site"
 
@@ -33,19 +33,22 @@ export async function generateMetadata({
     })
   }
 
-  const description = article.excerpt || article.content.slice(0, 160)
-  const cover = articleCover(article)
+  const title = article.meta_title?.trim() || article.title
+  const description =
+    article.meta_description?.trim() || article.excerpt || article.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
+  const image = articleOgImage(article)
   const path = `/articles/${article.slug}`
 
   return {
     ...createPageMetadata({
-      title: article.title,
+      title,
       description,
       path,
-      image: cover,
+      image,
+      absoluteTitle: Boolean(article.meta_title?.trim()),
     }),
     openGraph: {
-      title: article.title,
+      title,
       description,
       url: path,
       siteName: siteConfig.name,
@@ -53,7 +56,13 @@ export async function generateMetadata({
       type: "article",
       publishedTime: article.published_at ?? undefined,
       modifiedTime: article.updated_at,
-      images: cover ? [{ url: cover, alt: article.title }] : undefined,
+      images: image ? [{ url: image, alt: article.title }] : undefined,
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: image ? [image] : undefined,
     },
   }
 }
@@ -63,13 +72,13 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const article = await getArticleBySlug(slug).catch(() => null)
   if (!article) notFound()
 
-  const cover = articleCover(article)
+  const image = articleOgImage(article)
 
   return (
     <>
       <JsonLd
         data={[
-          articleJsonLd(article, cover),
+          articleJsonLd(article, image),
           breadcrumbJsonLd([
             { name: "Начало", path: "/" },
             { name: "Полезно", path: "/articles" },

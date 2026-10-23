@@ -25,9 +25,15 @@ export function ArticleView({ article }: { article: Article }) {
           ) : null}
         </header>
         {cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover} alt={article.title} className="max-h-96 w-full rounded-2xl object-cover" />
-        ) : null}
+          <div className="aspect-video overflow-hidden rounded-2xl bg-white/40">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={cover} alt={article.title} className="h-full w-full object-cover" />
+          </div>
+        ) : (
+          <div className="glass-panel flex aspect-video items-end rounded-2xl p-6">
+            <p className="text-sm font-medium text-primary">Полезно</p>
+          </div>
+        )}
         <GlassCard variant="panel">
           <ArticleBody content={article.content} />
         </GlassCard>

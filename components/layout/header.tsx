@@ -3,6 +3,10 @@ import { Menu, Search } from "lucide-react"
 
 import { HeaderAuth } from "@/components/layout/header-auth"
 import { LogoMark } from "@/components/layout/logo-mark"
+import { SearchQueryField } from "@/components/search/search-query-field"
+
+const headerSearchClass =
+  "h-10 w-full rounded-xl border border-slate-200/80 bg-white/80 px-3 text-sm outline-none transition-colors duration-200 placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
 
 const nav: { href: string; label: string; accent?: boolean }[] = [
   { href: "/specialisti", label: "Специалисти" },
@@ -39,12 +43,10 @@ export function Header() {
             <label className="sr-only" htmlFor="header-search">
               Търсене
             </label>
-            <input
+            <SearchQueryField
               id="header-search"
-              name="q"
-              type="search"
               placeholder="Лекар, специалност или град"
-              className="h-10 w-full rounded-xl border border-slate-200/80 bg-white/80 px-3 text-sm outline-none transition-colors duration-200 placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+              inputClassName={headerSearchClass}
             />
           </form>
 
@@ -79,6 +81,16 @@ export function Header() {
               className="glass absolute right-0 z-50 mt-2 grid w-64 gap-1 rounded-2xl p-2"
               aria-label="Мобилна"
             >
+              <form action="/search" className="p-1">
+                <label className="sr-only" htmlFor="menu-search">
+                  Търсене
+                </label>
+                <SearchQueryField
+                  id="menu-search"
+                  placeholder="Лекар, специалност или град"
+                  inputClassName={headerSearchClass}
+                />
+              </form>
               {nav.map((item) => (
                 <Link
                   key={item.href}

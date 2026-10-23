@@ -31,22 +31,35 @@ const cyrillic: Record<string, string> = {
   я: "ya",
 }
 
-export function slugifyTitle(value: string) {
-  const transliterated = value
+function toLatin(value: string, softSign: string) {
+  return value
     .trim()
-    .toLowerCase()
+    .toLocaleLowerCase("bg")
     .split("")
-    .map((char) => cyrillic[char] ?? char)
+    .map((char) => (char === "ь" ? softSign : cyrillic[char] ?? char))
     .join("")
-
-  return transliterated
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 80)
+}
+
+export function slugifyTitle(value: string, max = 80) {
+  return toLatin(value, "y").slice(0, max)
+}
+
+export function latinSlug(value: string, max = 80) {
+  return toLatin(value, "").slice(0, max)
 }
 
 export function articleCover(article: { cover_image_url?: string | null; cover_url?: string | null }) {
   return article.cover_image_url || article.cover_url || null
+}
+
+export function articleOgImage(article: {
+  og_image_url?: string | null
+  cover_image_url?: string | null
+  cover_url?: string | null
+}) {
+  return article.og_image_url || articleCover(article)
 }

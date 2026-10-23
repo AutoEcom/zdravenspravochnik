@@ -1,5 +1,7 @@
 import type { ReactNode } from "react"
 
+import { looksLikeHtml, sanitizeArticleHtml } from "@/lib/content/article-html"
+
 function inline(text: string, keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = []
   const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*/g
@@ -41,6 +43,15 @@ function linesOf(block: string) {
 }
 
 export function ArticleBody({ content }: { content: string }) {
+  if (looksLikeHtml(content)) {
+    return (
+      <div
+        className="flex flex-col gap-4 text-base leading-relaxed text-foreground [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h4]:mt-5 [&_h4]:text-lg [&_h4]:font-semibold [&_img]:my-2 [&_img]:max-h-96 [&_img]:w-full [&_img]:rounded-2xl [&_img]:object-cover [&_li]:leading-relaxed [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5"
+        dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(content) }}
+      />
+    )
+  }
+
   const blocks = content
     .replace(/\r\n/g, "\n")
     .split(/\n{2,}/)

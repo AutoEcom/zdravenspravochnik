@@ -161,8 +161,12 @@ export type Article = {
   content: string
   cover_url: string | null
   cover_image_url: string | null
+  og_image_url: string | null
+  meta_title: string | null
+  meta_description: string | null
   author_id: string | null
   status: PublishStatus
+  source: string | null
   published_at: string | null
   created_at: string
   updated_at: string
@@ -301,8 +305,12 @@ export type ArticleInsert = {
   content?: string
   cover_url?: string | null
   cover_image_url?: string | null
+  og_image_url?: string | null
+  meta_title?: string | null
+  meta_description?: string | null
   author_id?: string | null
   status?: PublishStatus
+  source?: string | null
   published_at?: string | null
   created_at?: string
   updated_at?: string
