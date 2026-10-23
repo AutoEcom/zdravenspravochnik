@@ -283,6 +283,17 @@ export async function searchDirectory(
   }
 }
 
+export async function getPublishedCounts(): Promise<{ doctors: number; facilities: number }> {
+  const supabase = await createClient()
+  const [doctors, facilities] = await Promise.all([
+    supabase.from("doctors").select("*", { count: "exact", head: true }).eq("status", "published"),
+    supabase.from("facilities").select("*", { count: "exact", head: true }).eq("status", "published"),
+  ])
+  if (doctors.error) throw doctors.error
+  if (facilities.error) throw facilities.error
+  return { doctors: doctors.count ?? 0, facilities: facilities.count ?? 0 }
+}
+
 export async function getPublishedDoctors(limit = 9): Promise<Doctor[]> {
   const supabase = await createClient()
   const { data, error } = await supabase

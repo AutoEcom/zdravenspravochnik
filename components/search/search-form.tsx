@@ -1,3 +1,4 @@
+import { SearchQueryField } from "@/components/search/search-query-field"
 import { buttonVariants } from "@/components/ui/button"
 
 const fieldClass =
@@ -72,14 +73,7 @@ export function SearchForm({ specialties, cities, defaults, action = "/search", 
       ) : null}
       <label className="grid gap-2 text-sm font-medium" htmlFor="search-query">
         Свободен текст
-        <input
-          id="search-query"
-          name="q"
-          type="search"
-          defaultValue={defaults?.q ?? ""}
-          placeholder="Име на лекар или заведение"
-          className={fieldClass}
-        />
+        <SearchQueryField id="search-query" defaultValue={defaults?.q ?? ""} />
       </label>
       <button type="submit" className={buttonVariants({ variant: "accent", className: "w-full lg:w-auto" })}>
         Търси
