@@ -1,5 +1,4 @@
-import { humanLabel, specialtyDisplay } from "@/lib/content/normalize"
-import { labelFromSlug } from "@/lib/content/placeholders"
+import { uniqueCatalogOptions } from "@/lib/content/catalog"
 import { PAGE_SIZE } from "@/lib/content/listing"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { cleanSearchText } from "@/lib/supabase/queries/search"
@@ -79,29 +78,48 @@ function asCities(value: string[] | null) {
   return Array.isArray(value) ? value.filter(Boolean) : []
 }
 
+export type ProfileSlugOption = {
+  slug: string
+  name: string
+  aliases: string[]
+}
+
 export function slugOptions(
   rows: { name: string; slug: string }[],
   current: string[],
   mode: "city" | "specialty",
+): ProfileSlugOption[] {
+  return uniqueCatalogOptions(rows, current, mode).map((option) => ({
+    slug: option.slug,
+    name: option.name,
+    aliases: option.aliases,
+  }))
+}
+
+export function checkedSlugValues(
+  options: readonly ProfileSlugOption[],
+  requested: readonly string[],
+  current: readonly string[],
 ) {
-  const map = new Map<string, string>()
-  for (const row of rows) {
-    const slug = row.slug?.trim()
-    const name = row.name?.trim()
-    if (!slug || map.has(slug)) continue
-    map.set(slug, name || labelFromSlug(slug))
+  const wanted = new Set(requested.map((slug) => slug.trim().toLocaleLowerCase("bg")).filter(Boolean))
+  const kept: string[] = []
+  const seen = new Set<string>()
+  const add = (slug: string) => {
+    const trimmed = slug.trim()
+    const key = trimmed.toLocaleLowerCase("bg")
+    if (!key || seen.has(key) || kept.length >= 40) return
+    seen.add(key)
+    kept.push(trimmed)
   }
-  for (const slug of current) {
-    const trimmed = slug?.trim()
-    if (!trimmed || map.has(trimmed)) continue
-    map.set(trimmed, labelFromSlug(trimmed))
+
+  for (const option of options) {
+    const keys = new Set([option.slug, ...option.aliases].map((slug) => slug.trim().toLocaleLowerCase("bg")))
+    if (![...keys].some((key) => wanted.has(key))) continue
+    const owned = current.filter((slug) => keys.has(slug.trim().toLocaleLowerCase("bg")))
+    if (owned.length > 0) owned.forEach(add)
+    else add(option.slug)
   }
-  return [...map.entries()]
-    .map(([slug, name]) => ({
-      slug,
-      name: mode === "specialty" ? specialtyDisplay(name) : humanLabel(name) || name,
-    }))
-    .sort((left, right) => left.name.localeCompare(right.name, "bg") || left.slug.localeCompare(right.slug))
+  return kept
 }
 
 export async function listAdminProfiles(input: {

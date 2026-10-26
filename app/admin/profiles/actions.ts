@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache"
 
+import { checkedSlugValues, slugOptions } from "@/app/admin/profiles/query"
 import { getSessionProfile } from "@/lib/auth/session"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getCities, getSpecialties } from "@/lib/supabase/queries"
+import { safeQuery } from "@/lib/supabase/safe"
 import type { DoctorUpdate, FacilityType, FacilityUpdate, PublishStatus } from "@/types/database"
 
 export type ProfileFormState = { ok: boolean; message: string } | null
@@ -35,17 +38,9 @@ function optionalWebsite(value: string) {
   return { value }
 }
 
-async function keepSlugs(
-  admin: ReturnType<typeof createAdminClient>,
-  table: "cities" | "specialties",
-  requested: string[],
-  current: string[],
-) {
-  if (requested.length === 0) return []
-  const { data } = await admin.from(table).select("slug").in("slug", requested)
-  const known = new Set((data ?? []).map((row) => row.slug))
-  const owned = new Set(current)
-  return requested.filter((slug) => known.has(slug) || owned.has(slug))
+async function storedSlugs(requested: string[], current: string[], mode: "city" | "specialty") {
+  const rows = mode === "city" ? await safeQuery(getCities, []) : await safeQuery(getSpecialties, [])
+  return checkedSlugValues(slugOptions(rows, current, mode), requested, current)
 }
 
 export async function saveProfile(_prev: ProfileFormState, formData: FormData): Promise<ProfileFormState> {
@@ -103,8 +98,8 @@ export async function saveProfile(_prev: ProfileFormState, formData: FormData): 
       title: title || null,
       full_name: name,
       bio: description || null,
-      cities: await keepSlugs(admin, "cities", requestedCities, current.cities ?? []),
-      specialties: await keepSlugs(admin, "specialties", requestedSpecialties, current.specialties ?? []),
+      cities: await storedSlugs(requestedCities, current.cities ?? [], "city"),
+      specialties: await storedSlugs(requestedSpecialties, current.specialties ?? [], "specialty"),
     }
     const { error } = await admin.from("doctors").update(payload).eq("id", id)
     if (error) return { ok: false, message: "Записът не мина." }
@@ -129,8 +124,8 @@ export async function saveProfile(_prev: ProfileFormState, formData: FormData): 
     name,
     facility_type: facilityTypeValue as FacilityType,
     description: description || null,
-    cities: await keepSlugs(admin, "cities", requestedCities, current.cities ?? []),
-    specialties: await keepSlugs(admin, "specialties", requestedSpecialties, current.specialties ?? []),
+    cities: await storedSlugs(requestedCities, current.cities ?? [], "city"),
+    specialties: await storedSlugs(requestedSpecialties, current.specialties ?? [], "specialty"),
   }
   const { error } = await admin.from("facilities").update(payload).eq("id", id)
   if (error) return { ok: false, message: "Записът не мина." }

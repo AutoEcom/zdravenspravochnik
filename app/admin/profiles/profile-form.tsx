@@ -38,6 +38,11 @@ function sourceLabel(source: string | null) {
   return source || "—"
 }
 
+function isChosen(option: { slug: string; aliases?: string[] }, selected: string[]) {
+  const chosen = new Set(selected.map((slug) => slug.trim().toLocaleLowerCase("bg")))
+  return [option.slug, ...(option.aliases ?? [])].some((slug) => chosen.has(slug.trim().toLocaleLowerCase("bg")))
+}
+
 function SlugChecks({
   name,
   label,
@@ -46,10 +51,9 @@ function SlugChecks({
 }: {
   name: string
   label: string
-  options: { slug: string; name: string }[]
+  options: { slug: string; name: string; aliases?: string[] }[]
   selected: string[]
 }) {
-  const chosen = new Set(selected)
   return (
     <fieldset className="grid gap-2">
       <legend className="text-sm font-medium">{label}</legend>
@@ -61,7 +65,7 @@ function SlugChecks({
                 type="checkbox"
                 name={name}
                 value={option.slug}
-                defaultChecked={chosen.has(option.slug)}
+                defaultChecked={isChosen(option, selected)}
                 className="mt-0.5 size-4 accent-primary"
               />
               <span>{option.name}</span>
@@ -117,8 +121,8 @@ export function AdminProfileForm({
   address: string
   cities: string[]
   specialties: string[]
-  cityOptions: { slug: string; name: string }[]
-  specialtyOptions: { slug: string; name: string }[]
+  cityOptions: { slug: string; name: string; aliases?: string[] }[]
+  specialtyOptions: { slug: string; name: string; aliases?: string[] }[]
   acceptsNhif: boolean
   acceptsChildren: boolean
   onlineConsultation: boolean
