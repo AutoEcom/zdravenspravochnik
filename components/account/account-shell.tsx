@@ -21,12 +21,12 @@ export function AccountShell({
   return (
     <div className="min-h-screen">
       <header className="glass sticky top-0 z-40">
-        <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-3">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2 px-4 py-3">
           <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Здравен справочник">
             <LogoMark className="size-9" />
             <span className="hidden text-sm font-semibold text-primary sm:inline">справочник</span>
           </Link>
-          <nav className="ml-auto flex items-center" aria-label="Профил">
+          <nav className="ml-auto flex flex-wrap items-center justify-end" aria-label="Профил">
             <Link href="/dashboard" className={linkClass}>
               Табло
             </Link>
@@ -35,7 +35,12 @@ export function AccountShell({
             </Link>
             {role === "admin" ? (
               <Link href="/admin" className={linkClass}>
-                Админ
+                Клеймове
+              </Link>
+            ) : null}
+            {role === "admin" ? (
+              <Link href="/admin/profiles" className={linkClass}>
+                Профили
               </Link>
             ) : null}
             {role === "admin" ? (

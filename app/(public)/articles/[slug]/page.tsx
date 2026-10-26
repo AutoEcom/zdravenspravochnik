@@ -6,7 +6,7 @@ import { JsonLd } from "@/components/seo/json-ld"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { articleJsonLd, breadcrumbJsonLd } from "@/components/seo/schemas"
 import { articleOgImage } from "@/lib/content/slug"
-import { getArticleBySlug } from "@/lib/supabase/queries"
+import { getArticleBySlug, getRelatedArticles } from "@/lib/supabase/queries"
 import { siteConfig } from "@/lib/site"
 
 function normalizeSlug(slug: string) {
@@ -73,6 +73,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   if (!article) notFound()
 
   const image = articleOgImage(article)
+  const related = await getRelatedArticles(article.slug).catch(() => [])
 
   return (
     <>
@@ -86,7 +87,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           ]),
         ]}
       />
-      <ArticleView article={article} />
+      <ArticleView article={article} related={related} />
     </>
   )
 }

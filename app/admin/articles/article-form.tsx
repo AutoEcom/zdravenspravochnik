@@ -13,6 +13,7 @@ import { GlassCard } from "@/components/ui/glass-card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { slugifyTitle } from "@/lib/content/slug"
+import type { PublishStatus } from "@/types/database"
 
 const fieldClass =
   "w-full rounded-2xl border border-slate-200/80 bg-white/70 px-3.5 py-3 text-sm outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
@@ -44,7 +45,7 @@ export function ArticleForm({
   slug: string
   excerpt: string
   content: string
-  status: "draft" | "published"
+  status: PublishStatus
   coverImageUrl: string
   metaTitle: string
   metaDescription: string
@@ -158,20 +159,26 @@ export function ArticleForm({
           />
           <p className="text-sm text-muted-foreground">Ако е празно, се ползва корицата.</p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Статус: {status === "published" ? "Публикувана" : "Чернова"}
-        </p>
+        <div className="grid gap-2">
+          <Label htmlFor="status">Статус</Label>
+          <select id="status" name="status" defaultValue={status} className={fieldClass}>
+            <option value="draft">Чернова</option>
+            <option value="published">Публикувана</option>
+            <option value="archived">Архив</option>
+          </select>
+          <p className="text-sm text-muted-foreground">„Запази“ ползва избрания статус. „Публикувай“ прави статията публична.</p>
+        </div>
       </GlassCard>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <Button type="submit" name="intent" value="draft" disabled={pending} className="w-full sm:w-auto">
-          {pending ? "Запис..." : "Запази чернова"}
+        <Button type="submit" name="intent" value="save" disabled={pending} className="w-full sm:w-auto">
+          {pending ? "Запис..." : "Запази"}
         </Button>
         <Button type="submit" name="intent" value="publish" variant="accent" disabled={pending} className="w-full sm:w-auto">
           Публикувай
         </Button>
         {status === "published" && slug ? (
           <Link
-            href={`/articles/${slug}`}
+            href={`/articles/${encodeURIComponent(slug)}`}
             target="_blank"
             rel="noopener noreferrer"
             className={buttonVariants({ variant: "outline", className: "w-full sm:w-auto" })}

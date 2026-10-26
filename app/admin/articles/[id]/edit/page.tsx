@@ -33,7 +33,7 @@ export default async function EditArticlePage({
   if (!data) notFound()
 
   const { saved } = await searchParams
-  const status = data.status === "published" ? "published" : "draft"
+  const status = data.status === "published" || data.status === "archived" ? data.status : "draft"
 
   return (
     <AccountShell role="admin" eyebrow="Администрация" title={data.title}>
