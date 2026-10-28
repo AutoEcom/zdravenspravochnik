@@ -41,6 +41,7 @@ export default function RootLayout({
     <html
       lang="bg"
       className={`${geistSans.variable} ${geistMono.variable}`}
+      style={{ colorScheme: "light" }}
       suppressHydrationWarning
     >
       <body className="min-h-screen antialiased">
@@ -48,6 +49,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="light"
           enableSystem={false}
+          forcedTheme="light"
           disableTransitionOnChange
         >
           {children}

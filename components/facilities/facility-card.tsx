@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Star } from "lucide-react"
 
+import { VerifiedBadge } from "@/components/profiles/verified-badge"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
 import { reviewLabel } from "@/lib/content/present"
@@ -17,18 +18,22 @@ export type FacilitySummary = {
   acceptsNhif?: boolean
   acceptsChildren?: boolean
   onlineConsultation?: boolean
-  example?: boolean
+  isClaimed?: boolean
 }
 
 export function FacilityCard({ facility }: { facility: FacilitySummary }) {
+  const hasBadges =
+    facility.isClaimed || facility.acceptsNhif || facility.acceptsChildren || facility.onlineConsultation
   const body = (
     <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">
-      <div className="flex flex-wrap gap-2">
-        {facility.example ? <Badge variant="secondary">Пример</Badge> : null}
-        {facility.acceptsNhif ? <Badge>НЗОК</Badge> : null}
-        {facility.acceptsChildren ? <Badge variant="success">Деца</Badge> : null}
-        {facility.onlineConsultation ? <Badge variant="outline">Онлайн</Badge> : null}
-      </div>
+      {hasBadges ? (
+        <div className="flex flex-wrap gap-2">
+          {facility.isClaimed ? <VerifiedBadge /> : null}
+          {facility.acceptsNhif ? <Badge>НЗОК</Badge> : null}
+          {facility.acceptsChildren ? <Badge variant="success">Деца</Badge> : null}
+          {facility.onlineConsultation ? <Badge variant="outline">Онлайн</Badge> : null}
+        </div>
+      ) : null}
       <p className="text-sm font-medium text-primary">{facility.facilityType}</p>
       <h3>{facility.name}</h3>
       <p className="text-sm text-muted-foreground">{facility.specialties.join(", ") || "Специалности"}</p>
@@ -48,7 +53,7 @@ export function FacilityCard({ facility }: { facility: FacilitySummary }) {
     </GlassCard>
   )
 
-  if (!facility.slug || facility.example) return body
+  if (!facility.slug) return body
 
   return (
     <Link

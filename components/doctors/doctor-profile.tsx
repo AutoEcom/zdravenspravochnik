@@ -3,10 +3,11 @@ import Link from "next/link"
 import { Star } from "lucide-react"
 
 import { DoctorCard, type DoctorSummary } from "@/components/doctors/doctor-card"
-import { OpeningHours } from "@/components/profiles/opening-hours"
+import { OpeningHours, openingHourRows } from "@/components/profiles/opening-hours"
 import { PlaceCard } from "@/components/profiles/place-card"
 import { ProfileActions } from "@/components/profiles/profile-actions"
-import { ProfileDescription } from "@/components/profiles/rich-text"
+import { hasProfileText, ProfileDescription } from "@/components/profiles/rich-text"
+import { VerifiedBadge } from "@/components/profiles/verified-badge"
 import { ProfileFaq } from "@/components/profiles/profile-faq"
 import { ReviewsNote } from "@/components/profiles/reviews-note"
 import { JsonLd } from "@/components/seo/json-ld"
@@ -40,6 +41,11 @@ export function DoctorProfile({
   related: DoctorSummary[]
 }) {
   const name = displayName(doctor.title, doctor.full_name)
+  const phone = doctor.phone?.trim() ?? ""
+  const email = doctor.email?.trim() ?? ""
+  const website = doctor.website?.trim() ?? ""
+  const address = doctor.address?.trim() ?? ""
+  const hasHours = openingHourRows(doctor.working_hours).length > 0
   const specialtyNames = namesFor(doctor.specialties, specialties)
   const cityNames = namesFor(doctor.cities, cities)
   const locality = doctor.cities[0] ? cities.find((city) => city.slug === doctor.cities[0])?.name : undefined
@@ -79,6 +85,7 @@ export function DoctorProfile({
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           <div className="flex flex-wrap gap-2">
+            {doctor.is_claimed ? <VerifiedBadge /> : null}
             {doctor.is_premium ? <Badge variant="accent">Премиум</Badge> : null}
             {doctor.accepts_nhif ? <Badge>НЗОК</Badge> : null}
             {doctor.accepts_children ? <Badge variant="success">Деца</Badge> : null}
@@ -93,31 +100,35 @@ export function DoctorProfile({
               <span className="font-normal text-muted-foreground">· {reviewLabel(doctor.review_count)}</span>
             </p>
           ) : null}
-          {doctor.short_description ? <p className="max-w-2xl leading-relaxed">{doctor.short_description}</p> : null}
+          {doctor.short_description?.trim() ? (
+            <p className="max-w-2xl leading-relaxed">{doctor.short_description.trim()}</p>
+          ) : null}
         </div>
       </GlassCard>
 
       <ProfileActions
-        phone={doctor.phone}
-        email={doctor.email}
-        website={doctor.website}
+        phone={phone || null}
+        email={email || null}
+        website={website || null}
         shareTitle={name}
         shareUrl={absoluteUrl(`/${doctor.slug}`)}
         claimHref={`/claim?${new URLSearchParams({ type: "doctor", slug: doctor.slug }).toString()}`}
         claimed={doctor.is_claimed}
       />
 
-      {doctor.bio ? (
+      {hasProfileText(doctor.bio) ? (
         <GlassCard className="flex flex-col gap-3">
           <h2>За специалиста</h2>
-          <ProfileDescription html={doctor.bio} />
+          <ProfileDescription html={doctor.bio ?? ""} />
         </GlassCard>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <OpeningHours hours={doctor.working_hours} />
-        {doctor.address ? <PlaceCard address={doctor.address} /> : null}
-      </div>
+      {hasHours || address ? (
+        <div className={hasHours && address ? "grid gap-6 lg:grid-cols-2" : "grid gap-6"}>
+          {hasHours ? <OpeningHours hours={doctor.working_hours} /> : null}
+          {address ? <PlaceCard address={address} /> : null}
+        </div>
+      ) : null}
 
       {doctor.specialties.length > 0 ? (
         <GlassCard>
@@ -137,21 +148,20 @@ export function DoctorProfile({
         </GlassCard>
       ) : null}
 
-      <GlassCard className="grid gap-2 text-sm">
-        <h2>Контакт</h2>
-        {doctor.phone ? <p><a className="text-primary hover:underline" href={`tel:${doctor.phone}`}>{doctor.phone}</a></p> : null}
-        {doctor.email ? <p><a className="text-primary hover:underline" href={`mailto:${doctor.email}`}>{doctor.email}</a></p> : null}
-        {doctor.website ? (
-          <p>
-            <a className="text-primary hover:underline" href={doctor.website} target="_blank" rel="noopener noreferrer">
-              {doctor.website.replace(/^https?:\/\//, "")}
-            </a>
-          </p>
-        ) : null}
-        {!doctor.phone && !doctor.email && !doctor.website ? (
-          <p className="text-muted-foreground">Контактът ще бъде добавен скоро.</p>
-        ) : null}
-      </GlassCard>
+      {phone || email || website ? (
+        <GlassCard className="grid gap-2 text-sm">
+          <h2>Контакт</h2>
+          {phone ? <p><a className="text-primary hover:underline" href={`tel:${phone}`}>{phone}</a></p> : null}
+          {email ? <p><a className="text-primary hover:underline" href={`mailto:${email}`}>{email}</a></p> : null}
+          {website ? (
+            <p>
+              <a className="text-primary hover:underline" href={website} target="_blank" rel="noopener noreferrer">
+                {website.replace(/^https?:\/\//, "")}
+              </a>
+            </p>
+          ) : null}
+        </GlassCard>
+      ) : null}
 
       <ReviewsNote rating={doctor.rating} count={doctor.review_count} />
 
@@ -182,8 +192,8 @@ function doctorFaqs(
   const place = locality ?? "България"
   const specs = specialtyNames.filter(Boolean).join(", ")
   const contact = [
-    doctor.phone ? `обадете се на ${doctor.phone}` : null,
-    doctor.email ? `пишете на ${doctor.email}` : null,
+    doctor.phone?.trim() ? `обадете се на ${doctor.phone.trim()}` : null,
+    doctor.email?.trim() ? `пишете на ${doctor.email.trim()}` : null,
   ].filter(Boolean)
 
   return [
@@ -213,8 +223,8 @@ function doctorFaqs(
     },
     {
       question: `Къде е кабинетът в ${place}?`,
-      answer: doctor.address
-        ? `Адресът е ${doctor.address}.${specs ? ` Прегледите са по ${specs}.` : ""}`
+      answer: doctor.address?.trim()
+        ? `Адресът е ${doctor.address.trim()}.${specs ? ` Прегледите са по ${specs}.` : ""}`
         : `Профилът е за ${place}. Точният адрес се потвърждава при записване.`,
     },
   ]

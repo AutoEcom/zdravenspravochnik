@@ -5,7 +5,7 @@ import { DoctorCard } from "@/components/doctors/doctor-card"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { GlassCard } from "@/components/ui/glass-card"
 import { getSearchOptions } from "@/lib/content/catalog"
-import { catalogName, placeholderDoctors } from "@/lib/content/placeholders"
+import { catalogName } from "@/lib/content/placeholders"
 import { presentDoctor } from "@/lib/content/present"
 import { getDoctorsBySpecialty } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
@@ -55,25 +55,17 @@ export default async function SpecialtyListingPage({ params }: SpecialtyPageProp
           </li>
         ))}
       </ul>
-      <ul className="grid gap-4 md:grid-cols-3">
-        {doctors.length > 0
-          ? doctors.map((doctor) => (
-              <li key={doctor.id}>
-                <DoctorCard doctor={presentDoctor(doctor, specialties, cities)} />
-              </li>
-            ))
-          : placeholderDoctors.map((doctor) => (
-              <li key={doctor.full_name}>
-                <DoctorCard
-                  doctor={{
-                    ...doctor,
-                    specialties: [name],
-                    example: true,
-                  }}
-                />
-              </li>
-            ))}
-      </ul>
+      {doctors.length > 0 ? (
+        <ul className="grid gap-4 md:grid-cols-3">
+          {doctors.map((doctor) => (
+            <li key={doctor.id}>
+              <DoctorCard doctor={presentDoctor(doctor, specialties, cities)} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-muted-foreground">Все още няма публикувани профили за тази специалност.</p>
+      )}
       <GlassCard>
         <h2>Търсене</h2>
         <p className="mt-2 text-sm text-muted-foreground">

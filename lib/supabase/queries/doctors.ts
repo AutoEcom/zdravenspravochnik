@@ -80,20 +80,32 @@ export async function getDoctorsInCity(
   return data ?? []
 }
 
-export async function getFeaturedDoctors(): Promise<Doctor[]> {
+export async function getFeaturedDoctors(limit = 12): Promise<Doctor[]> {
   const supabase = await createClient()
-  const { data, error } = await supabase
+  const preferred = await supabase
     .from("doctors")
     .select("*")
     .eq("status", "published")
-    .eq("is_featured", true)
+    .or("is_claimed.eq.true,is_featured.eq.true")
+    .order("is_claimed", { ascending: false })
+    .order("is_featured", { ascending: false })
     .order("is_premium", { ascending: false })
-    .order("rating", { ascending: false })
-    .limit(12)
+    .order("full_name", { ascending: true })
+    .limit(limit)
 
-  if (error) {
-    throw error
-  }
+  if (preferred.error) throw preferred.error
+  if ((preferred.data ?? []).length > 0) return preferred.data ?? []
 
-  return data ?? []
+  const fallback = await supabase
+    .from("doctors")
+    .select("*")
+    .eq("status", "published")
+    .not("phone", "is", null)
+    .neq("phone", "")
+    .order("is_premium", { ascending: false })
+    .order("full_name", { ascending: true })
+    .limit(limit)
+
+  if (fallback.error) throw fallback.error
+  return (fallback.data ?? []).filter((row) => row.phone?.trim())
 }

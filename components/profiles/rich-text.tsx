@@ -14,6 +14,11 @@ function sanitizeProfileHtml(value: string) {
   })
 }
 
+export function hasProfileText(value: string | null | undefined) {
+  if (!value) return false
+  return value.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").trim().length > 0
+}
+
 export function ProfileDescription({ html }: { html: string }) {
   const safe = sanitizeProfileHtml(html).trim()
   if (!safe) return null

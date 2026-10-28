@@ -79,6 +79,7 @@ export function presentDoctor(
     acceptsChildren: doctor.accepts_children,
     onlineConsultation: doctor.online_consultation,
     isPremium: doctor.is_premium,
+    isClaimed: doctor.is_claimed,
   }
 }
 
@@ -99,6 +100,7 @@ export function presentFacility(
     acceptsNhif: facility.accepts_nhif,
     acceptsChildren: facility.accepts_children,
     onlineConsultation: facility.online_consultation,
+    isClaimed: facility.is_claimed,
   }
 }
 

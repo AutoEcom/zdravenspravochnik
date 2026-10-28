@@ -12,8 +12,9 @@ const days: { key: keyof WorkingHours; label: string }[] = [
   { key: "sunday", label: "Неделя" },
 ]
 
-export function OpeningHours({ hours }: { hours: WorkingHours }) {
-  const rows = days.flatMap((day) => {
+export function openingHourRows(hours: WorkingHours | null | undefined) {
+  if (!hours) return []
+  return days.flatMap((day) => {
     const schedule = hours[day.key]
     if (!schedule) return []
     const value = schedule.closed
@@ -21,22 +22,23 @@ export function OpeningHours({ hours }: { hours: WorkingHours }) {
       : [schedule.open, schedule.close].filter(Boolean).join(" – ")
     return value ? [{ label: day.label, value }] : []
   })
+}
+
+export function OpeningHours({ hours }: { hours: WorkingHours | null | undefined }) {
+  const rows = openingHourRows(hours)
+  if (rows.length === 0) return null
 
   return (
     <GlassCard>
       <h2>Работно време</h2>
-      {rows.length > 0 ? (
-        <dl className="mt-4 grid gap-3 text-sm">
-          {rows.map((slot) => (
-            <div key={slot.label} className="flex items-center justify-between gap-4">
-              <dt className="text-muted-foreground">{slot.label}</dt>
-              <dd>{slot.value}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : (
-        <p className="mt-3 text-sm text-muted-foreground">Работното време ще бъде добавено скоро.</p>
-      )}
+      <dl className="mt-4 grid gap-3 text-sm">
+        {rows.map((slot) => (
+          <div key={slot.label} className="flex items-center justify-between gap-4">
+            <dt className="text-muted-foreground">{slot.label}</dt>
+            <dd>{slot.value}</dd>
+          </div>
+        ))}
+      </dl>
     </GlassCard>
   )
 }

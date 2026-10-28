@@ -55,7 +55,7 @@ export function ClaimForm({
       return
     }
     setHits(result.hits)
-    if (result.hits.length === 0) toast("Няма съвпадения. Опитайте с име или slug.")
+    if (result.hits.length === 0) toast("Няма съвпадения. Опитайте с име или град.")
   }
 
   async function onSubmit(event: React.FormEvent) {

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Star } from "lucide-react"
 
+import { VerifiedBadge } from "@/components/profiles/verified-badge"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
 import { reviewLabel } from "@/lib/content/present"
@@ -18,19 +19,27 @@ export type DoctorSummary = {
   acceptsChildren?: boolean
   onlineConsultation?: boolean
   isPremium?: boolean
-  example?: boolean
+  isClaimed?: boolean
 }
 
 export function DoctorCard({ doctor }: { doctor: DoctorSummary }) {
+  const hasBadges =
+    doctor.isClaimed ||
+    doctor.isPremium ||
+    doctor.acceptsNhif ||
+    doctor.acceptsChildren ||
+    doctor.onlineConsultation
   const body = (
     <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">
-      <div className="flex flex-wrap gap-2">
-        {doctor.example ? <Badge variant="secondary">Пример</Badge> : null}
-        {doctor.isPremium ? <Badge variant="accent">Премиум</Badge> : null}
-        {doctor.acceptsNhif ? <Badge>НЗОК</Badge> : null}
-        {doctor.acceptsChildren ? <Badge variant="success">Деца</Badge> : null}
-        {doctor.onlineConsultation ? <Badge variant="outline">Онлайн</Badge> : null}
-      </div>
+      {hasBadges ? (
+        <div className="flex flex-wrap gap-2">
+          {doctor.isClaimed ? <VerifiedBadge /> : null}
+          {doctor.isPremium ? <Badge variant="accent">Премиум</Badge> : null}
+          {doctor.acceptsNhif ? <Badge>НЗОК</Badge> : null}
+          {doctor.acceptsChildren ? <Badge variant="success">Деца</Badge> : null}
+          {doctor.onlineConsultation ? <Badge variant="outline">Онлайн</Badge> : null}
+        </div>
+      ) : null}
       {doctor.title ? <p className="text-sm font-medium text-primary">{doctor.title}</p> : null}
       <h3>{doctor.full_name}</h3>
       <p className="text-sm text-muted-foreground">{doctor.specialties.join(", ") || "Специалност"}</p>
@@ -50,7 +59,7 @@ export function DoctorCard({ doctor }: { doctor: DoctorSummary }) {
     </GlassCard>
   )
 
-  if (!doctor.slug || doctor.example) return body
+  if (!doctor.slug) return body
 
   return (
     <Link

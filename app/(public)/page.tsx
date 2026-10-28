@@ -10,12 +10,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { GlassCard } from "@/components/ui/glass-card"
 import { getSearchOptions } from "@/lib/content/catalog"
 import { formatCount } from "@/lib/content/listing"
-import {
-  placeholderArticles,
-  placeholderDoctors,
-  placeholderFacilities,
-  popularSpecialties,
-} from "@/lib/content/placeholders"
+import { popularSpecialties } from "@/lib/content/placeholders"
 import { formatBgDate, presentDoctor, presentFacility } from "@/lib/content/present"
 import { getFeaturedDoctors, getFeaturedFacilities, getPublishedArticles, getPublishedCounts } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
@@ -66,8 +61,13 @@ export default async function HomePage() {
           <p className="text-sm font-medium text-primary">Здравен справочник</p>
           <h1 className="mt-3">Лекари и здравни заведения в България</h1>
           <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">
-            Публичен справочник с контакти по специалност и град. Ако сте специалистът или управлявате
-            заведението, можете да заявите профила и да редактирате данните.
+            Публичен справочник с контакти по специалност и град.
+          </p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Специалистите и заведенията могат да{" "}
+            <Link href="/claim" className="font-medium text-primary underline-offset-4 hover:underline">
+              заявят профила си
+            </Link>.
           </p>
           {counts.doctors > 0 || counts.facilities > 0 ? (
             <p className="mt-4 text-sm font-medium tabular-nums">
@@ -142,19 +142,15 @@ export default async function HomePage() {
             Към специалистите
           </Link>
         </div>
-        <ul className={evenGridClass(doctors.length > 0 ? doctors.length : placeholderDoctors.length)}>
-          {doctors.length > 0
-            ? doctors.map((doctor) => (
-                <li key={doctor.slug ?? doctor.full_name}>
-                  <DoctorCard doctor={doctor} />
-                </li>
-              ))
-            : placeholderDoctors.map((doctor) => (
-                <li key={doctor.full_name}>
-                  <DoctorCard doctor={{ ...doctor, example: true }} />
-                </li>
-              ))}
-        </ul>
+        {doctors.length > 0 ? (
+          <ul className={evenGridClass(doctors.length)}>
+            {doctors.map((doctor) => (
+              <li key={doctor.slug ?? doctor.full_name}>
+                <DoctorCard doctor={doctor} />
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </section>
 
       <section
@@ -177,19 +173,15 @@ export default async function HomePage() {
             Към здравните заведения
           </Link>
         </div>
-        <ul className={evenGridClass(facilities.length > 0 ? facilities.length : placeholderFacilities.length)}>
-          {facilities.length > 0
-            ? facilities.map((facility) => (
-                <li key={facility.slug ?? facility.name}>
-                  <FacilityCard facility={facility} />
-                </li>
-              ))
-            : placeholderFacilities.map((facility) => (
-                <li key={facility.name}>
-                  <FacilityCard facility={{ ...facility, example: true }} />
-                </li>
-              ))}
-        </ul>
+        {facilities.length > 0 ? (
+          <ul className={evenGridClass(facilities.length)}>
+            {facilities.map((facility) => (
+              <li key={facility.slug ?? facility.name}>
+                <FacilityCard facility={facility} />
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </section>
 
       <section
@@ -201,33 +193,24 @@ export default async function HomePage() {
           <h2 id="articles-heading">Последни статии</h2>
           <p className="mt-2 text-muted-foreground">Кратки материали преди посещение при специалист.</p>
         </div>
-        <ul className="grid gap-4 md:grid-cols-3">
-          {articles.length > 0
-            ? articles.map((article) => (
-                <li key={article.slug}>
-                  <Link
-                    href={`/articles/${article.slug}`}
-                    className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                  >
-                    <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">
-                      <h3>{article.title}</h3>
-                      {article.excerpt ? <p className="text-sm text-muted-foreground">{article.excerpt}</p> : null}
-                      <p className="mt-auto text-sm text-muted-foreground">{formatBgDate(article.published_at)}</p>
-                    </GlassCard>
-                  </Link>
-                </li>
-              ))
-            : placeholderArticles.map((article) => (
-                <li key={article.title}>
-                  <GlassCard variant="panel" className="flex h-full flex-col gap-3">
-                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Пример</p>
+        {articles.length > 0 ? (
+          <ul className="grid gap-4 md:grid-cols-3">
+            {articles.map((article) => (
+              <li key={article.slug}>
+                <Link
+                  href={`/articles/${article.slug}`}
+                  className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                >
+                  <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">
                     <h3>{article.title}</h3>
-                    <p className="text-sm text-muted-foreground">{article.excerpt}</p>
-                    <p className="mt-auto text-sm text-muted-foreground">{article.date}</p>
+                    {article.excerpt ? <p className="text-sm text-muted-foreground">{article.excerpt}</p> : null}
+                    <p className="mt-auto text-sm text-muted-foreground">{formatBgDate(article.published_at)}</p>
                   </GlassCard>
-                </li>
-              ))}
-        </ul>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </section>
     </main>
   )

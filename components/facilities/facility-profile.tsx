@@ -3,10 +3,11 @@ import Link from "next/link"
 import { Star } from "lucide-react"
 
 import { FacilityCard, type FacilitySummary } from "@/components/facilities/facility-card"
-import { OpeningHours } from "@/components/profiles/opening-hours"
+import { OpeningHours, openingHourRows } from "@/components/profiles/opening-hours"
 import { PlaceCard } from "@/components/profiles/place-card"
 import { ProfileActions } from "@/components/profiles/profile-actions"
-import { ProfileDescription } from "@/components/profiles/rich-text"
+import { hasProfileText, ProfileDescription } from "@/components/profiles/rich-text"
+import { VerifiedBadge } from "@/components/profiles/verified-badge"
 import { ProfileFaq } from "@/components/profiles/profile-faq"
 import { ReviewsNote } from "@/components/profiles/reviews-note"
 import { JsonLd } from "@/components/seo/json-ld"
@@ -41,6 +42,11 @@ export function FacilityProfile({
   related: FacilitySummary[]
 }) {
   const name = cleanDisplayName(facility.name)
+  const phone = facility.phone?.trim() ?? ""
+  const email = facility.email?.trim() ?? ""
+  const website = facility.website?.trim() ?? ""
+  const address = facility.address?.trim() ?? ""
+  const hasHours = openingHourRows(facility.working_hours).length > 0
   const specialtyNames = namesFor(facility.specialties, specialties)
   const cityNames = namesFor(facility.cities, cities)
   const locality = facility.cities[0] ? cities.find((city) => city.slug === facility.cities[0])?.name : undefined
@@ -80,6 +86,7 @@ export function FacilityProfile({
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">{kind}</Badge>
+            {facility.is_claimed ? <VerifiedBadge /> : null}
             {facility.is_premium ? <Badge variant="accent">Премиум</Badge> : null}
             {facility.accepts_nhif ? <Badge>НЗОК</Badge> : null}
             {facility.accepts_children ? <Badge variant="success">Деца</Badge> : null}
@@ -94,33 +101,35 @@ export function FacilityProfile({
               <span className="font-normal text-muted-foreground">· {reviewLabel(facility.review_count)}</span>
             </p>
           ) : null}
-          {facility.short_description ? (
-            <p className="max-w-2xl leading-relaxed">{facility.short_description}</p>
+          {facility.short_description?.trim() ? (
+            <p className="max-w-2xl leading-relaxed">{facility.short_description.trim()}</p>
           ) : null}
         </div>
       </GlassCard>
 
       <ProfileActions
-        phone={facility.phone}
-        email={facility.email}
-        website={facility.website}
+        phone={phone || null}
+        email={email || null}
+        website={website || null}
         shareTitle={name}
         shareUrl={absoluteUrl(`/${facility.slug}`)}
         claimHref={`/claim?${new URLSearchParams({ type: "facility", slug: facility.slug }).toString()}`}
         claimed={facility.is_claimed}
       />
 
-      {facility.description ? (
+      {hasProfileText(facility.description) ? (
         <GlassCard className="flex flex-col gap-3">
           <h2>За заведението</h2>
-          <ProfileDescription html={facility.description} />
+          <ProfileDescription html={facility.description ?? ""} />
         </GlassCard>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <OpeningHours hours={facility.working_hours} />
-        {facility.address ? <PlaceCard address={facility.address} /> : null}
-      </div>
+      {hasHours || address ? (
+        <div className={hasHours && address ? "grid gap-6 lg:grid-cols-2" : "grid gap-6"}>
+          {hasHours ? <OpeningHours hours={facility.working_hours} /> : null}
+          {address ? <PlaceCard address={address} /> : null}
+        </div>
+      ) : null}
 
       {facility.specialties.length > 0 ? (
         <GlassCard>
@@ -170,8 +179,8 @@ function facilityFaqs(
   const place = locality ?? "България"
   const specs = specialtyNames.filter(Boolean).join(", ")
   const contact = [
-    facility.phone ? `обадете се на ${facility.phone}` : null,
-    facility.email ? `пишете на ${facility.email}` : null,
+    facility.phone?.trim() ? `обадете се на ${facility.phone.trim()}` : null,
+    facility.email?.trim() ? `пишете на ${facility.email.trim()}` : null,
   ].filter(Boolean)
 
   return [
@@ -201,8 +210,8 @@ function facilityFaqs(
     },
     {
       question: `Къде се намира в ${place}?`,
-      answer: facility.address
-        ? `Адресът е ${facility.address}.`
+      answer: facility.address?.trim()
+        ? `Адресът е ${facility.address.trim()}.`
         : `Заведението е в ${place}. Точният адрес се потвърждава при записване.`,
     },
   ]

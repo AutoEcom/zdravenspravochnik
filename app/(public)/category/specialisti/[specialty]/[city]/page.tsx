@@ -4,7 +4,7 @@ import Link from "next/link"
 import { DoctorCard } from "@/components/doctors/doctor-card"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { getSearchOptions } from "@/lib/content/catalog"
-import { catalogName, placeholderDoctors } from "@/lib/content/placeholders"
+import { catalogName } from "@/lib/content/placeholders"
 import { presentDoctor } from "@/lib/content/present"
 import { getDoctorsBySpecialtyAndCity } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
@@ -62,25 +62,7 @@ export default async function SpecialtyCityListingPage({ params }: SpecialtyCity
             ))}
         </ul>
       ) : (
-        <div className="flex flex-col gap-4">
-          <p className="text-muted-foreground">
-            Все още няма публикувани профили. По-долу са примерни карти.
-          </p>
-          <ul className="grid gap-4 md:grid-cols-3">
-            {placeholderDoctors.map((doctor) => (
-              <li key={doctor.full_name}>
-                <DoctorCard
-                  doctor={{
-                    ...doctor,
-                    specialties: [specialtyName],
-                    cities: [cityName],
-                    example: true,
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
+        <p className="text-muted-foreground">Все още няма публикувани профили за тази специалност и град.</p>
       )}
     </main>
   )
