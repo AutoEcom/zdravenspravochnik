@@ -11,7 +11,7 @@ const headerSearchClass =
 const nav: { href: string; label: string; accent?: boolean }[] = [
   { href: "/specialisti", label: "Специалисти" },
   { href: "/zavedenia", label: "Здравни заведения" },
-  { href: "/jensko-zdrave", label: "Женско здраве", accent: true },
+  { href: "/articles?category=jensko-zdrave", label: "Женско здраве", accent: true },
   { href: "/articles", label: "Полезно" },
 ]
 

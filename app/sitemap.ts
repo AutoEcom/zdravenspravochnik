@@ -4,7 +4,20 @@ import { createClient } from "@supabase/supabase-js"
 import { absoluteUrl } from "@/lib/site"
 import type { Database } from "@/lib/supabase/types"
 
-const staticPaths = ["/", "/specialisti", "/zavedenia", "/articles", "/search", "/jensko-zdrave", "/za-nas", "/kontakti"]
+const staticPaths = [
+  "/",
+  "/specialisti",
+  "/zavedenia",
+  "/articles",
+  "/search",
+  "/jensko-zdrave",
+  "/za-nas",
+  "/kontakti",
+  "/obshti-usloviya",
+  "/politika-za-poveritelnost",
+  "/biskvitki",
+  "/otgovornost",
+]
 
 function publicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL

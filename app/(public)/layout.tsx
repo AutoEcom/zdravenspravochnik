@@ -1,3 +1,4 @@
+import { CookieConsent } from "@/components/layout/cookie-consent"
 import { Footer } from "@/components/layout/footer"
 import { Header } from "@/components/layout/header"
 
@@ -19,6 +20,7 @@ export default function PublicLayout({
         {children}
       </div>
       <Footer />
+      <CookieConsent />
     </div>
   )
 }
