@@ -28,14 +28,34 @@ export default async function AdminArticlesPage() {
   if (profile?.role !== "admin") redirect("/dashboard")
 
   const admin = createAdminClient()
-  const { data, error } = await admin
-    .from("articles")
-    .select("id, title, status, published_at, updated_at")
-    .order("updated_at", { ascending: false })
+  const [withCategory, categories] = await Promise.all([
+    admin.from("articles").select("id, title, status, published_at, updated_at, category_id").order("updated_at", { ascending: false }),
+    admin.from("article_categories").select("id, name"),
+  ])
+  const listed =
+    withCategory.error && /category_id/i.test(withCategory.error.message)
+      ? await admin.from("articles").select("id, title, status, published_at, updated_at").order("updated_at", { ascending: false })
+      : withCategory
+  const data = (listed.data ?? []).map((article) => {
+    const raw = "category_id" in article ? article.category_id : null
+    return {
+      id: article.id,
+      title: article.title,
+      status: article.status,
+      published_at: article.published_at,
+      updated_at: article.updated_at,
+      category_id: typeof raw === "string" ? raw : null,
+    }
+  })
+  const error = listed.error
+  const categoryName = new Map((categories.data ?? []).map((category) => [category.id, category.name]))
 
   return (
     <AccountShell role="admin" eyebrow="Администрация" title="Статии">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <Link href="/admin/categories" className={buttonVariants({ variant: "outline", className: "w-full sm:w-auto" })}>
+          Категории
+        </Link>
         <Link href="/admin/articles/new" className={buttonVariants({ variant: "primary", className: "w-full sm:w-auto" })}>
           Нова статия
         </Link>
@@ -52,8 +72,9 @@ export default async function AdminArticlesPage() {
                   <div className="min-w-0">
                     <h2 className="text-lg">{article.title}</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {statusLabel[article.status]}
-                      {when ? ` · ${formatBgDate(when)}` : ""}
+                      {[article.category_id ? categoryName.get(article.category_id) : null, statusLabel[article.status], when ? formatBgDate(when) : null]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                   </div>
                   <Link

@@ -48,6 +48,11 @@ export function AccountShell({
                 Статии
               </Link>
             ) : null}
+            {role === "admin" ? (
+              <Link href="/admin/categories" className={linkClass}>
+                Категории
+              </Link>
+            ) : null}
             <SignOutButton />
           </nav>
         </div>

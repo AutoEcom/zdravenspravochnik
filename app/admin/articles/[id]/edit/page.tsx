@@ -34,6 +34,11 @@ export default async function EditArticlePage({
 
   const { saved } = await searchParams
   const status = data.status === "published" || data.status === "archived" ? data.status : "draft"
+  const { data: categories } = await admin
+    .from("article_categories")
+    .select("id, name, is_published, sort_order")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true })
 
   return (
     <AccountShell role="admin" eyebrow="Администрация" title={data.title}>
@@ -48,6 +53,8 @@ export default async function EditArticlePage({
         metaTitle={data.meta_title ?? ""}
         metaDescription={data.meta_description ?? ""}
         ogImageUrl={data.og_image_url ?? ""}
+        categoryId={data.category_id ?? ""}
+        categories={categories ?? []}
         saved={saved === "1"}
       />
     </AccountShell>

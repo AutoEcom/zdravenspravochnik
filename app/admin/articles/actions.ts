@@ -58,16 +58,42 @@ export async function saveArticle(_prev: ArticleFormState, formData: FormData): 
   }
 
   const cover = coverInput.value
+  const categoryId = String(formData.get("category_id") ?? "").trim()
+  if (!/^[0-9a-f-]{36}$/i.test(categoryId)) return { ok: false, message: "Изберете категория." }
 
   const admin = createAdminClient()
+  const { data: category, error: categoryError } = await admin
+    .from("article_categories")
+    .select("id, slug")
+    .eq("id", categoryId)
+    .maybeSingle()
+  if (categoryError) {
+    return { ok: false, message: "Пуснете supabase/migrations/007_article_categories.sql в SQL Editor." }
+  }
+  if (!category) return { ok: false, message: "Изберете категория." }
+
   const { data: clash, error: clashError } = await admin.from("articles").select("id").eq("slug", slug).maybeSingle()
   if (clashError) return { ok: false, message: "Не успяхме да проверим адреса." }
   if (clash && clash.id !== id) return { ok: false, message: "Този адрес вече се използва." }
 
   let publishedAt: string | null = null
+  let previousCategoryId: string | null = null
   if (editing) {
-    const { data: current } = await admin.from("articles").select("published_at").eq("id", id).maybeSingle()
+    const { data: current, error: currentError } = await admin
+      .from("articles")
+      .select("published_at, category_id")
+      .eq("id", id)
+      .maybeSingle()
+    if (currentError) {
+      return {
+        ok: false,
+        message: /category_id/i.test(currentError.message)
+          ? "Пуснете supabase/migrations/007_article_categories.sql в SQL Editor."
+          : "Не успяхме да заредим статията.",
+      }
+    }
     publishedAt = current?.published_at ?? null
+    previousCategoryId = current?.category_id ?? null
   }
   if (status === "published" && !publishedAt) publishedAt = new Date().toISOString()
 
@@ -77,13 +103,14 @@ export async function saveArticle(_prev: ArticleFormState, formData: FormData): 
     excerpt: excerpt || null,
     content,
     status,
+    category_id: category.id,
     cover_url: cover,
     cover_image_url: cover,
     og_image_url: og.value,
     meta_title: metaTitle || null,
     meta_description: metaDescription || null,
     published_at: publishedAt,
-    ...(editing ? {} : { author_id: user.id }),
+    ...(editing ? {} : { author_id: user.id, source: "site" }),
   }
 
   const saved = await writeArticle(admin, editing ? id : null, payload)
@@ -91,11 +118,23 @@ export async function saveArticle(_prev: ArticleFormState, formData: FormData): 
 
   revalidatePath("/articles")
   revalidatePath(`/articles/${saved.slug}`)
+  revalidatePath(`/${saved.slug}`)
+  revalidatePath(`/articles/category/${category.slug}`)
   revalidatePath("/")
   revalidatePath("/admin/articles")
+  revalidatePath("/admin/categories")
   revalidatePath("/sitemap.xml")
   if (previousSlug && previousSlug !== saved.slug) {
     revalidatePath(`/articles/${previousSlug}`)
+    revalidatePath(`/${previousSlug}`)
+  }
+  if (previousCategoryId && previousCategoryId !== category.id) {
+    const { data: previousCategory } = await admin
+      .from("article_categories")
+      .select("slug")
+      .eq("id", previousCategoryId)
+      .maybeSingle()
+    if (previousCategory?.slug) revalidatePath(`/articles/category/${previousCategory.slug}`)
   }
 
   const base =
@@ -119,6 +158,9 @@ async function writeArticle(
     if (!result.error) return { ...result.data, dropped }
     const missing = result.error.message?.match(/'([a-z_]+)' column|column "([a-z_]+)"/i)
     const column = missing?.[1] || missing?.[2]
+    if (column === "category_id") {
+      return { error: "Категорията не се записа. Пуснете supabase/migrations/007_article_categories.sql в SQL Editor." }
+    }
     if (!column || !(column in current)) {
       return { error: "Записът не мина. Пуснете supabase/migrations/006_articles_seo.sql в SQL Editor." }
     }

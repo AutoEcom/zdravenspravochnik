@@ -4,6 +4,7 @@ import { ArticleForm } from "@/app/admin/articles/article-form"
 import { AccountShell } from "@/components/account/account-shell"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { getSessionProfile } from "@/lib/auth/session"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export const metadata = createPageMetadata({
   title: "Нова статия",
@@ -17,6 +18,13 @@ export default async function NewArticlePage() {
   if (!user) redirect("/login?next=/admin/articles/new")
   if (profile?.role !== "admin") redirect("/dashboard")
 
+  const admin = createAdminClient()
+  const { data: categories } = await admin
+    .from("article_categories")
+    .select("id, name, is_published, sort_order")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true })
+
   return (
     <AccountShell role="admin" eyebrow="Администрация" title="Нова статия">
       <ArticleForm
@@ -29,6 +37,8 @@ export default async function NewArticlePage() {
         metaTitle=""
         metaDescription=""
         ogImageUrl=""
+        categoryId=""
+        categories={categories ?? []}
       />
     </AccountShell>
   )

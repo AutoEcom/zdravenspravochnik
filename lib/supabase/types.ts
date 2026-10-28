@@ -1,5 +1,6 @@
 export type {
   Article,
+  ArticleCategory,
   City,
   ClaimRequest,
   Database,

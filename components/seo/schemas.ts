@@ -2,6 +2,7 @@ import type { Article, Doctor, Facility } from "@/types/database"
 
 import { cleanDisplayName } from "@/lib/content/display-name"
 import { openingHoursSpecification } from "@/lib/content/present"
+import { articlePublicPath } from "@/lib/content/article-path"
 import { absoluteUrl, siteConfig } from "@/lib/site"
 
 function defined<T extends Record<string, unknown>>(value: T) {
@@ -158,8 +159,8 @@ export function medicalClinicJsonLd(
   })
 }
 
-export function articleJsonLd(article: Article, cover: string | null) {
-  const pageUrl = absoluteUrl(`/articles/${article.slug}`)
+export function articleJsonLd(article: Article, cover: string | null, section?: string | null) {
+  const pageUrl = absoluteUrl(articlePublicPath(article))
   const body = article.content.replace(/[#*[\]()]/g, " ").replace(/\s+/g, " ").trim()
 
   return defined({
@@ -168,6 +169,7 @@ export function articleJsonLd(article: Article, cover: string | null) {
     "@id": `${pageUrl}#article`,
     headline: article.title,
     description: article.meta_description || article.excerpt || body.slice(0, 160),
+    articleSection: section || undefined,
     articleBody: body,
     image: cover ? [cover] : undefined,
     datePublished: article.published_at,
@@ -189,6 +191,38 @@ export function articleJsonLd(article: Article, cover: string | null) {
       url: siteConfig.url,
     },
   })
+}
+
+export function collectionPageJsonLd(input: {
+  name: string
+  description: string
+  path: string
+  total: number
+  items: { name: string; path: string; position: number }[]
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    inLanguage: "bg-BG",
+    isPartOf: {
+      "@type": "WebSite",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: input.total,
+      itemListElement: input.items.map((item) => ({
+        "@type": "ListItem",
+        position: item.position,
+        name: item.name,
+        url: absoluteUrl(item.path),
+      })),
+    },
+  }
 }
 
 export function breadcrumbJsonLd(items: { name: string; path: string }[]) {

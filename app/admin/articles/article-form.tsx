@@ -15,6 +15,12 @@ import { Label } from "@/components/ui/label"
 import { slugifyTitle } from "@/lib/content/slug"
 import type { PublishStatus } from "@/types/database"
 
+export type ArticleCategoryOption = {
+  id: string
+  name: string
+  is_published: boolean
+}
+
 const fieldClass =
   "w-full rounded-2xl border border-slate-200/80 bg-white/70 px-3.5 py-3 text-sm outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
 
@@ -38,6 +44,8 @@ export function ArticleForm({
   metaTitle,
   metaDescription,
   ogImageUrl,
+  categoryId,
+  categories,
   saved = false,
 }: {
   id?: string
@@ -50,6 +58,8 @@ export function ArticleForm({
   metaTitle: string
   metaDescription: string
   ogImageUrl: string
+  categoryId: string
+  categories: ArticleCategoryOption[]
   saved?: boolean
 }) {
   const [state, action, pending] = useActionState(saveArticle, null as ArticleFormState)
@@ -114,6 +124,28 @@ export function ArticleForm({
             defaultValue={excerpt}
             className={fieldClass}
           />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="category_id">Категория</Label>
+          {categories.length > 0 ? (
+            <select id="category_id" name="category_id" defaultValue={categoryId} required className={fieldClass}>
+              <option value="">Изберете категория</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                  {category.is_published ? "" : " (скрита)"}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Няма категории.{" "}
+              <Link href="/admin/categories/new" className="text-primary underline underline-offset-4">
+                Създайте категория
+              </Link>
+              , преди да запишете статията.
+            </p>
+          )}
         </div>
         <div className="grid gap-2">
           <Label htmlFor="content">Текст</Label>

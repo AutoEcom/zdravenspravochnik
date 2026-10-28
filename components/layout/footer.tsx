@@ -49,13 +49,14 @@ const directory = [
 ]
 
 const reading = [
-  { href: "/articles", label: "Всички статии" },
-  { href: "/articles?category=simptomi", label: "Симптоми и състояния" },
-  { href: "/articles?category=izsledvania", label: "Изследвания и подготовка" },
-  { href: "/articles?category=detsko-zdrave", label: "Детско здраве" },
-  { href: "/articles?category=jensko-zdrave", label: "Женско здраве" },
-  { href: "/articles?category=psihichno-zdrave", label: "Психично здраве" },
-  { href: "/articles?category=predi-pregled", label: "Съвети преди преглед" },
+  { href: "/articles", label: "Всички теми" },
+  { href: "/articles/category/simptomi-i-sastoyaniya", label: "Симптоми и състояния" },
+  { href: "/articles/category/izsledvaniya-i-podgotovka", label: "Изследвания и подготовка" },
+  { href: "/articles/category/detsko-zdrave", label: "Детско здраве" },
+  { href: "/articles/category/jensko-zdrave", label: "Женско здраве" },
+  { href: "/articles/category/psihichno-zdrave", label: "Психично здраве" },
+  { href: "/articles/category/saveti-predi-pregled", label: "Съвети преди преглед" },
+  { href: "/articles/category/hranene-i-metabolizam", label: "Хранене и метаболизъм" },
 ]
 
 const about = [

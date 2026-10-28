@@ -1,13 +1,10 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 
-import { ArticleView } from "@/components/articles/article-view"
-import { JsonLd } from "@/components/seo/json-ld"
+import { ArticleDocument, articlePageMetadata } from "@/components/articles/article-document"
 import { createPageMetadata } from "@/components/seo/page-meta"
-import { articleJsonLd, breadcrumbJsonLd } from "@/components/seo/schemas"
-import { articleOgImage } from "@/lib/content/slug"
-import { getArticleBySlug, getRelatedArticles } from "@/lib/supabase/queries"
-import { siteConfig } from "@/lib/site"
+import { isLegacyArticle } from "@/lib/content/article-path"
+import { getArticleBySlug } from "@/lib/supabase/queries"
 
 function normalizeSlug(slug: string) {
   try {
@@ -33,61 +30,13 @@ export async function generateMetadata({
     })
   }
 
-  const title = article.meta_title?.trim() || article.title
-  const description =
-    article.meta_description?.trim() || article.excerpt || article.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
-  const image = articleOgImage(article)
-  const path = `/articles/${article.slug}`
-
-  return {
-    ...createPageMetadata({
-      title,
-      description,
-      path,
-      image,
-      absoluteTitle: Boolean(article.meta_title?.trim()),
-    }),
-    openGraph: {
-      title,
-      description,
-      url: path,
-      siteName: siteConfig.name,
-      locale: "bg_BG",
-      type: "article",
-      publishedTime: article.published_at ?? undefined,
-      modifiedTime: article.updated_at,
-      images: image ? [{ url: image, alt: article.title }] : undefined,
-    },
-    twitter: {
-      card: image ? "summary_large_image" : "summary",
-      title,
-      description,
-      images: image ? [image] : undefined,
-    },
-  }
+  return articlePageMetadata(article)
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const slug = normalizeSlug((await params).slug)
   const article = await getArticleBySlug(slug).catch(() => null)
   if (!article) notFound()
-
-  const image = articleOgImage(article)
-  const related = await getRelatedArticles(article.slug).catch(() => [])
-
-  return (
-    <>
-      <JsonLd
-        data={[
-          articleJsonLd(article, image),
-          breadcrumbJsonLd([
-            { name: "Начало", path: "/" },
-            { name: "Полезно", path: "/articles" },
-            { name: article.title, path: `/articles/${article.slug}` },
-          ]),
-        ]}
-      />
-      <ArticleView article={article} related={related} />
-    </>
-  )
+  if (isLegacyArticle(article.source)) permanentRedirect(`/${encodeURIComponent(article.slug)}`)
+  return <ArticleDocument article={article} />
 }

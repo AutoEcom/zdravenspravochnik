@@ -13,8 +13,13 @@ export {
 export {
   ARTICLE_PAGE_SIZE,
   getArticleBySlug,
+  getArticleCatalog,
+  getArticleStats,
+  getCategoryBySlug,
   getPublishedArticles,
   getPublishedArticlesPage,
+  getPublishedCountsByCategory,
+  getReadingDigest,
   getRelatedArticles,
 } from "@/lib/supabase/queries/articles"
 export { getSpecialties } from "@/lib/supabase/queries/specialties"

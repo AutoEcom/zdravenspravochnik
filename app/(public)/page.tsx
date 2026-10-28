@@ -11,8 +11,9 @@ import { GlassCard } from "@/components/ui/glass-card"
 import { getSearchOptions } from "@/lib/content/catalog"
 import { formatCount } from "@/lib/content/listing"
 import { popularSpecialties } from "@/lib/content/placeholders"
-import { formatBgDate, presentDoctor, presentFacility } from "@/lib/content/present"
-import { getFeaturedDoctors, getFeaturedFacilities, getPublishedArticles, getPublishedCounts } from "@/lib/supabase/queries"
+import { ReadingSection } from "@/components/articles/reading-section"
+import { presentDoctor, presentFacility } from "@/lib/content/present"
+import { getFeaturedDoctors, getFeaturedFacilities, getPublishedCounts, getReadingDigest } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
 
 function evenGridClass(count: number) {
@@ -33,11 +34,11 @@ export const metadata = createPageMetadata({
 })
 
 export default async function HomePage() {
-  const [{ specialties, cities }, featuredDoctors, featuredFacilities, articles, counts] = await Promise.all([
+  const [{ specialties, cities }, featuredDoctors, featuredFacilities, reading, counts] = await Promise.all([
     getSearchOptions(),
     safeQuery(getFeaturedDoctors, []),
     safeQuery(getFeaturedFacilities, []),
-    safeQuery(() => getPublishedArticles(3), []),
+    safeQuery(getReadingDigest, { articleCount: 0, categoryCount: 0, groups: [], latest: [] }),
     safeQuery(getPublishedCounts, { doctors: 0, facilities: 0 }),
   ])
   const doctors = featuredDoctors.slice(0, 6).map((doctor) => presentDoctor(doctor, specialties, cities))
@@ -184,34 +185,7 @@ export default async function HomePage() {
         ) : null}
       </section>
 
-      <section
-        id="statii"
-        className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-12 pb-20 sm:py-16"
-        aria-labelledby="articles-heading"
-      >
-        <div className="max-w-2xl">
-          <h2 id="articles-heading">Последни статии</h2>
-          <p className="mt-2 text-muted-foreground">Кратки материали преди посещение при специалист.</p>
-        </div>
-        {articles.length > 0 ? (
-          <ul className="grid gap-4 md:grid-cols-3">
-            {articles.map((article) => (
-              <li key={article.slug}>
-                <Link
-                  href={`/articles/${article.slug}`}
-                  className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                >
-                  <GlassCard variant="panel" className="flex h-full flex-col gap-3 transition-shadow duration-200 group-hover:shadow-md">
-                    <h3>{article.title}</h3>
-                    {article.excerpt ? <p className="text-sm text-muted-foreground">{article.excerpt}</p> : null}
-                    <p className="mt-auto text-sm text-muted-foreground">{formatBgDate(article.published_at)}</p>
-                  </GlassCard>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </section>
+      <ReadingSection digest={reading} />
     </main>
   )
 }

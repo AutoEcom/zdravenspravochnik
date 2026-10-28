@@ -153,6 +153,19 @@ export type FacilityDoctor = {
   updated_at: string
 }
 
+export type ArticleCategory = {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  color_accent: string | null
+  cover_image_url: string | null
+  sort_order: number
+  is_published: boolean
+  created_at: string
+  updated_at: string
+}
+
 export type Article = {
   id: string
   slug: string
@@ -164,6 +177,7 @@ export type Article = {
   og_image_url: string | null
   meta_title: string | null
   meta_description: string | null
+  category_id: string | null
   author_id: string | null
   status: PublishStatus
   source: string | null
@@ -297,6 +311,19 @@ export type FacilityDoctorInsert = {
   updated_at?: string
 }
 
+export type ArticleCategoryInsert = {
+  id?: string
+  name: string
+  slug: string
+  description?: string | null
+  color_accent?: string | null
+  cover_image_url?: string | null
+  sort_order?: number
+  is_published?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
 export type ArticleInsert = {
   id?: string
   slug: string
@@ -308,6 +335,7 @@ export type ArticleInsert = {
   og_image_url?: string | null
   meta_title?: string | null
   meta_description?: string | null
+  category_id?: string | null
   author_id?: string | null
   status?: PublishStatus
   source?: string | null
@@ -335,6 +363,7 @@ export type DoctorUpdate = Partial<DoctorInsert>
 export type FacilityUpdate = Partial<FacilityInsert>
 export type FacilityDoctorUpdate = Partial<FacilityDoctorInsert>
 export type ClaimRequestUpdate = Partial<ClaimRequestInsert>
+export type ArticleCategoryUpdate = Partial<ArticleCategoryInsert>
 export type ArticleUpdate = Partial<ArticleInsert>
 export type ReviewUpdate = Partial<ReviewInsert>
 
@@ -423,6 +452,7 @@ export type Database = {
           },
         ]
       >
+      article_categories: Table<ArticleCategory, ArticleCategoryInsert, ArticleCategoryUpdate, []>
       articles: Table<
         Article,
         ArticleInsert,
@@ -433,6 +463,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "article_categories"
             referencedColumns: ["id"]
           },
         ]
