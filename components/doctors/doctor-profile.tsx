@@ -9,7 +9,8 @@ import { ProfileActions } from "@/components/profiles/profile-actions"
 import { hasProfileText, ProfileDescription } from "@/components/profiles/rich-text"
 import { VerifiedBadge } from "@/components/profiles/verified-badge"
 import { ProfileFaq } from "@/components/profiles/profile-faq"
-import { ReviewsNote } from "@/components/profiles/reviews-note"
+import { ProfileReviews } from "@/components/profiles/profile-reviews"
+import { ViewCount } from "@/components/profiles/view-count"
 import { JsonLd } from "@/components/seo/json-ld"
 import { breadcrumbJsonLd, faqPageJsonLd, physicianJsonLd } from "@/components/seo/schemas"
 import { Badge } from "@/components/ui/badge"
@@ -93,6 +94,7 @@ export function DoctorProfile({
           </div>
           <h1>{name}</h1>
           <p className="text-muted-foreground">{cityNames.join(", ") || "България"}</p>
+          <ViewCount type="doctor" id={doctor.id} count={doctor.view_count ?? 0} />
           {doctor.review_count > 0 ? (
             <p className="flex items-center gap-1.5 text-sm font-medium">
               <Star className="size-4 fill-warning text-warning" />
@@ -163,7 +165,7 @@ export function DoctorProfile({
         </GlassCard>
       ) : null}
 
-      <ReviewsNote rating={doctor.rating} count={doctor.review_count} />
+      <ProfileReviews doctorId={doctor.id} slug={doctor.slug} />
 
       {related.length > 0 ? (
         <section className="flex flex-col gap-4" aria-labelledby="related-doctors">

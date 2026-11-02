@@ -67,7 +67,7 @@ export default async function HomePage() {
           <p className="mt-3 text-sm text-muted-foreground">
             Специалистите и заведенията могат да{" "}
             <Link href="/claim" className="font-medium text-primary underline-offset-4 hover:underline">
-              заявят профила си
+              верифицират профила си
             </Link>.
           </p>
           {counts.doctors > 0 || counts.facilities > 0 ? (

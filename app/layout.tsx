@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
 import { ThemeProvider } from "@/components/theme-provider"
+import { JsonLd } from "@/components/seo/json-ld"
+import { organizationJsonLd } from "@/components/seo/schemas"
 import { Toaster } from "@/components/ui/sonner"
 import { siteConfig } from "@/lib/site"
 
@@ -52,6 +54,7 @@ export default function RootLayout({
           forcedTheme="light"
           disableTransitionOnChange
         >
+          <JsonLd data={organizationJsonLd()} />
           {children}
           <Toaster />
         </ThemeProvider>

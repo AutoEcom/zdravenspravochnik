@@ -4,8 +4,9 @@ import { useState } from "react"
 import { Share2 } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
+import { cn } from "cn"
 
-export function ShareButton({ title, url }: { title: string; url: string }) {
+export function ShareButton({ title, url, className }: { title: string; url: string; className?: string }) {
   const [copied, setCopied] = useState(false)
 
   async function onShare() {
@@ -16,8 +17,14 @@ export function ShareButton({ title, url }: { title: string; url: string }) {
       }
       await navigator.clipboard.writeText(url)
       setCopied(true)
-    } catch {
-      setCopied(false)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return
+      try {
+        await navigator.clipboard.writeText(url)
+        setCopied(true)
+      } catch {
+        setCopied(false)
+      }
     }
   }
 
@@ -25,7 +32,7 @@ export function ShareButton({ title, url }: { title: string; url: string }) {
     <button
       type="button"
       onClick={onShare}
-      className={buttonVariants({ variant: "secondary", className: "w-full" })}
+      className={cn(buttonVariants({ variant: "secondary" }), "w-full", className)}
     >
       <Share2 />
       {copied ? "Копирано" : "Сподели"}

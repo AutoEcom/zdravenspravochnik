@@ -18,17 +18,35 @@ export async function getDoctorBySlug(slug: string): Promise<Doctor | null> {
   return data
 }
 
+function slugs(values: string[] | undefined, fallback: string) {
+  return [...new Set((values?.length ? values : [fallback]).map((value) => value.trim()).filter(Boolean))]
+}
+
+export async function getSpecialtyDoctorCities(specialty: string, aliases?: string[]) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("doctors")
+    .select("cities")
+    .eq("status", "published")
+    .overlaps("specialties", slugs(aliases, specialty))
+
+  if (error) throw error
+  return (data ?? []).map((row) => row.cities ?? [])
+}
+
 export async function getDoctorsBySpecialtyAndCity(
   specialty: string,
-  city: string
+  city: string,
+  specialtyAliases?: string[],
+  cityAliases?: string[]
 ): Promise<Doctor[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("doctors")
     .select("*")
     .eq("status", "published")
-    .contains("specialties", [specialty])
-    .contains("cities", [city])
+    .overlaps("specialties", slugs(specialtyAliases, specialty))
+    .overlaps("cities", slugs(cityAliases, city))
     .order("is_premium", { ascending: false })
     .order("rating", { ascending: false })
 
@@ -39,13 +57,13 @@ export async function getDoctorsBySpecialtyAndCity(
   return data ?? []
 }
 
-export async function getDoctorsBySpecialty(specialty: string): Promise<Doctor[]> {
+export async function getDoctorsBySpecialty(specialty: string, aliases?: string[]): Promise<Doctor[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("doctors")
     .select("*")
     .eq("status", "published")
-    .contains("specialties", [specialty])
+    .overlaps("specialties", slugs(aliases, specialty))
     .order("is_premium", { ascending: false })
     .order("rating", { ascending: false })
 

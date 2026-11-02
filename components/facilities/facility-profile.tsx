@@ -9,7 +9,8 @@ import { ProfileActions } from "@/components/profiles/profile-actions"
 import { hasProfileText, ProfileDescription } from "@/components/profiles/rich-text"
 import { VerifiedBadge } from "@/components/profiles/verified-badge"
 import { ProfileFaq } from "@/components/profiles/profile-faq"
-import { ReviewsNote } from "@/components/profiles/reviews-note"
+import { ProfileReviews } from "@/components/profiles/profile-reviews"
+import { ViewCount } from "@/components/profiles/view-count"
 import { JsonLd } from "@/components/seo/json-ld"
 import { breadcrumbJsonLd, faqPageJsonLd, medicalClinicJsonLd } from "@/components/seo/schemas"
 import { Badge } from "@/components/ui/badge"
@@ -94,6 +95,7 @@ export function FacilityProfile({
           </div>
           <h1>{name}</h1>
           <p className="text-muted-foreground">{cityNames.join(", ") || "България"}</p>
+          <ViewCount type="facility" id={facility.id} count={facility.view_count ?? 0} />
           {facility.review_count > 0 ? (
             <p className="flex items-center gap-1.5 text-sm font-medium">
               <Star className="size-4 fill-warning text-warning" />
@@ -149,7 +151,7 @@ export function FacilityProfile({
         </GlassCard>
       ) : null}
 
-      <ReviewsNote rating={facility.rating} count={facility.review_count} />
+      <ProfileReviews facilityId={facility.id} slug={facility.slug} />
 
       {related.length > 0 ? (
         <section className="flex flex-col gap-4" aria-labelledby="related-facilities">

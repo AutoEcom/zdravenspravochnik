@@ -6,11 +6,11 @@ export function VerifiedBadge() {
   return (
     <Badge
       variant="outline"
-      title="Профилът се управлява от специалиста/заведението"
+      title="Верифициран профил"
       className="border-primary/55 bg-white/80 text-primary"
     >
       <BadgeCheck aria-hidden />
-      Проверен
+      Верифициран
     </Badge>
   )
 }

@@ -1,6 +1,6 @@
 import { cache } from "react"
 import Link from "next/link"
-import { ChevronDown, Menu, Search } from "lucide-react"
+import { ChevronDown, LayoutGrid, Menu, Search } from "lucide-react"
 
 import { CategoryIcon } from "@/components/articles/category-icon"
 import { HeaderAuth } from "@/components/layout/header-auth"
@@ -33,7 +33,7 @@ function ReadingList({ categories, compact = false }: { categories: PublicCatego
             href={`/articles/category/${category.slug}`}
             className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
-            <span style={{ color: articleAccent(category.color_accent) }}>
+            <span className="inline-flex size-5 items-center justify-center" style={{ color: articleAccent(category.color_accent) }}>
               <CategoryIcon slug={category.slug} />
             </span>
             <span className={compact ? "leading-snug" : "leading-snug font-medium"}>{category.name}</span>
@@ -56,7 +56,10 @@ async function DesktopReading() {
         className="glass-strong absolute top-full right-0 z-50 mt-2 w-80 rounded-2xl border border-white/40 p-2 shadow-lg"
         style={{ backgroundColor: "rgba(255,255,255,0.96)" }}
       >
-        <Link href="/articles" className={`${linkClass} block font-medium text-foreground`}>
+        <Link href="/articles" className={`${linkClass} flex items-center gap-3 font-medium text-foreground`}>
+          <span className="inline-flex size-5 items-center justify-center text-primary">
+            <LayoutGrid className="size-5" aria-hidden />
+          </span>
           Всички теми
         </Link>
         {categories.length > 0 ? <ReadingList categories={categories} /> : null}
@@ -74,7 +77,10 @@ async function MobileReading() {
         <ChevronDown className="size-4 transition-transform duration-200 group-open:rotate-180" aria-hidden />
       </summary>
       <div className="grid gap-1 pb-1 pl-2">
-        <Link href="/articles" className={linkClass}>
+        <Link href="/articles" className={`${linkClass} flex items-center gap-3`}>
+          <span className="inline-flex size-5 items-center justify-center text-primary">
+            <LayoutGrid className="size-5" aria-hidden />
+          </span>
           Всички теми
         </Link>
         {categories.length > 0 ? <ReadingList categories={categories} compact /> : null}

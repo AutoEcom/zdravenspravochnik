@@ -44,6 +44,16 @@ function contactPoint(phone: string | null) {
   }
 }
 
+export function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    logo: absoluteUrl("/logo-mark.svg"),
+  }
+}
+
 export function websiteJsonLd() {
   return {
     "@context": "https://schema.org",

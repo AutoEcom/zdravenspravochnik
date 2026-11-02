@@ -1,13 +1,15 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
+import { CityPills } from "@/components/category/city-pills"
 import { DoctorCard } from "@/components/doctors/doctor-card"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { GlassCard } from "@/components/ui/glass-card"
-import { getSearchOptions } from "@/lib/content/catalog"
+import { getSearchOptions, optionAliases } from "@/lib/content/catalog"
 import { catalogName } from "@/lib/content/placeholders"
 import { presentDoctor } from "@/lib/content/present"
-import { getDoctorsBySpecialty } from "@/lib/supabase/queries"
+import { specialtyCityPills } from "@/lib/content/specialty-cities"
+import { getDoctorsBySpecialty, getSpecialtyDoctorCities } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
 
 type SpecialtyPageProps = {
@@ -30,7 +32,12 @@ export default async function SpecialtyListingPage({ params }: SpecialtyPageProp
   const { specialty } = await params
   const { specialties, cities } = await getSearchOptions()
   const name = catalogName(specialties, specialty)
-  const doctors = await safeQuery(() => getDoctorsBySpecialty(specialty), [])
+  const aliases = optionAliases(specialties, specialty)
+  const [doctors, doctorCities] = await Promise.all([
+    safeQuery(() => getDoctorsBySpecialty(specialty, aliases), []),
+    safeQuery(() => getSpecialtyDoctorCities(specialty, aliases), []),
+  ])
+  const pills = specialtyCityPills(doctorCities, cities)
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:py-16">
@@ -43,18 +50,7 @@ export default async function SpecialtyListingPage({ params }: SpecialtyPageProp
             : "Списъкът ще се напълни с публикувани профили. Дотогава може да ограничите търсенето по град."}
         </p>
       </div>
-      <ul className="flex flex-wrap gap-2">
-        {cities.slice(0, 6).map((city) => (
-          <li key={city.slug}>
-            <Link
-              href={`/category/specialisti/${specialty}/${city.slug}`}
-              className="inline-flex h-10 items-center rounded-full border border-primary/15 bg-white/70 px-4 text-sm transition-colors duration-200 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            >
-              {city.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <CityPills specialty={specialty} cities={pills} />
       {doctors.length > 0 ? (
         <ul className="grid gap-4 md:grid-cols-3">
           {doctors.map((doctor) => (

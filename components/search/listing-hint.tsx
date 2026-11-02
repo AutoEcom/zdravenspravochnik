@@ -16,7 +16,7 @@ export function ListingHint() {
   return (
     <p className="flex items-start justify-between gap-3 rounded-2xl border border-white/60 bg-white/50 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
       <span>
-        Филтрирайте по специалност и град. Специалистите могат да заявят профила си с бутона „Това е мой профил“.
+        Филтрирайте по специалност и град. Специалистите могат да верифицират профила си с бутона „Верифицирай профила“.
       </span>
       <button
         type="button"

@@ -8,8 +8,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { createClient } from "@/lib/supabase/client"
 
-const tip =
-  "Ако сте този специалист или управлявате заведението, влезте и заявете профила с имейл за потвърждение. След това ще можете да редактирате данните."
+const tip = "Влезте и заявете профила с имейл за потвърждение, за да го редактирате."
 
 export function ClaimProfileButton({ href, claimed }: { href: string; claimed: boolean }) {
   const tipId = useId()
@@ -36,7 +35,7 @@ export function ClaimProfileButton({ href, claimed }: { href: string; claimed: b
   if (claimed) {
     return (
       <p className="flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/40 px-4 text-center text-sm text-muted-foreground">
-        Профилът се управлява
+        Верифициран профил
       </p>
     )
   }
@@ -87,7 +86,7 @@ export function ClaimProfileButton({ href, claimed }: { href: string; claimed: b
           }}
           onClick={onClaimClick}
         >
-          Това е мой профил
+          Верифицирай профила
         </Link>
         {tipOpen ? (
           <span

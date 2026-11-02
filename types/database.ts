@@ -94,6 +94,7 @@ export type Doctor = {
   claimed_by: string | null
   rating: number
   review_count: number
+  view_count: number
   working_hours: WorkingHours
   source: string | null
   created_at: string
@@ -124,6 +125,7 @@ export type Facility = {
   claimed_by: string | null
   rating: number
   review_count: number
+  view_count: number
   working_hours: WorkingHours
   source: string | null
   created_at: string
@@ -181,6 +183,7 @@ export type Article = {
   author_id: string | null
   status: PublishStatus
   source: string | null
+  view_count: number
   published_at: string | null
   created_at: string
   updated_at: string
@@ -252,6 +255,7 @@ export type DoctorInsert = {
   claimed_by?: string | null
   rating?: number
   review_count?: number
+  view_count?: number
   working_hours?: WorkingHours
   source?: string | null
   created_at?: string
@@ -282,6 +286,7 @@ export type FacilityInsert = {
   claimed_by?: string | null
   rating?: number
   review_count?: number
+  view_count?: number
   working_hours?: WorkingHours
   source?: string | null
   created_at?: string
@@ -339,6 +344,7 @@ export type ArticleInsert = {
   author_id?: string | null
   status?: PublishStatus
   source?: string | null
+  view_count?: number
   published_at?: string | null
   created_at?: string
   updated_at?: string

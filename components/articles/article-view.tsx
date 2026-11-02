@@ -1,5 +1,8 @@
 import Link from "next/link"
 
+import { ShareButton } from "@/components/profiles/share-button"
+import { ViewCount } from "@/components/profiles/view-count"
+
 import { AdSlot } from "@/components/articles/ad-slot"
 import { ArticleBody } from "@/components/articles/article-body"
 import { ArticleBreadcrumb } from "@/components/articles/article-breadcrumb"
@@ -7,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { GlassCard } from "@/components/ui/glass-card"
 import { articleAccent } from "@/lib/content/article-category"
 import { articlePublicPath } from "@/lib/content/article-path"
+import { absoluteUrl } from "@/lib/site"
 import { articleCover } from "@/lib/content/slug"
 import { formatBgDate } from "@/lib/content/present"
 import type { PublicCategory, RelatedArticle } from "@/lib/supabase/queries/articles"
@@ -26,6 +30,10 @@ export function ArticleView({
   const cover = articleCover(article)
   const published = article.published_at
   const accent = articleAccent(category?.color_accent)
+  const updated =
+    published && article.updated_at && new Date(article.updated_at).getTime() - new Date(published).getTime() > 60_000
+      ? article.updated_at
+      : null
 
   return (
     <main className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
@@ -60,11 +68,20 @@ export function ArticleView({
               ) : null}
             </div>
             {article.excerpt ? <p className="text-lg leading-relaxed text-muted-foreground">{article.excerpt}</p> : null}
-            {published ? (
-              <time dateTime={published} className="text-sm text-muted-foreground">
-                {formatBgDate(published)}
-              </time>
-            ) : null}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {published ? (
+                <time dateTime={published} className="text-sm text-muted-foreground">
+                  {formatBgDate(published)}
+                </time>
+              ) : null}
+              {updated ? <p className="text-sm text-muted-foreground">Обновено на {formatBgDate(updated)}</p> : null}
+              <ViewCount type="article" id={article.id} count={article.view_count ?? 0} />
+              <ShareButton
+                title={article.title}
+                url={absoluteUrl(articlePublicPath(article))}
+                className="h-9 w-auto px-3"
+              />
+            </div>
           </header>
           {cover ? (
             <div className="aspect-video overflow-hidden rounded-2xl bg-white/40">

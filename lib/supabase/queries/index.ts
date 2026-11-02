@@ -1,6 +1,7 @@
 export {
   getDoctorBySlug,
   getDoctorsBySpecialty,
+  getSpecialtyDoctorCities,
   getDoctorsBySpecialtyAndCity,
   getDoctorsInCity,
   getFeaturedDoctors,

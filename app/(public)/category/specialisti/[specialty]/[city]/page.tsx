@@ -1,12 +1,14 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
+import { CityPills } from "@/components/category/city-pills"
 import { DoctorCard } from "@/components/doctors/doctor-card"
 import { createPageMetadata } from "@/components/seo/page-meta"
-import { getSearchOptions } from "@/lib/content/catalog"
+import { getSearchOptions, optionAliases } from "@/lib/content/catalog"
 import { catalogName } from "@/lib/content/placeholders"
 import { presentDoctor } from "@/lib/content/present"
-import { getDoctorsBySpecialtyAndCity } from "@/lib/supabase/queries"
+import { specialtyCityPills } from "@/lib/content/specialty-cities"
+import { getDoctorsBySpecialtyAndCity, getSpecialtyDoctorCities } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
 
 type SpecialtyCityPageProps = {
@@ -33,10 +35,13 @@ export default async function SpecialtyCityListingPage({ params }: SpecialtyCity
   const { specialties, cities } = await getSearchOptions()
   const specialtyName = catalogName(specialties, specialty)
   const cityName = catalogName(cities, city)
-  const doctors = await safeQuery(
-    () => getDoctorsBySpecialtyAndCity(specialty, city),
-    []
-  )
+  const specialtyKeys = optionAliases(specialties, specialty)
+  const cityKeys = optionAliases(cities, city)
+  const [doctors, doctorCities] = await Promise.all([
+    safeQuery(() => getDoctorsBySpecialtyAndCity(specialty, city, specialtyKeys, cityKeys), []),
+    safeQuery(() => getSpecialtyDoctorCities(specialty, specialtyKeys), []),
+  ])
+  const pills = specialtyCityPills(doctorCities, cities)
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:py-16">
@@ -53,6 +58,7 @@ export default async function SpecialtyCityListingPage({ params }: SpecialtyCity
           Публикувани специалисти за тази комбинация от специалност и град.
         </p>
       </div>
+      <CityPills specialty={specialty} cities={pills} active={city} />
       {doctors.length > 0 ? (
         <ul className="grid gap-4 md:grid-cols-3">
             {doctors.map((doctor) => (
