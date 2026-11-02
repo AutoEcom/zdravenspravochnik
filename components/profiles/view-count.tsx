@@ -6,6 +6,16 @@ import { Eye } from "lucide-react"
 import { formatViews } from "@/lib/content/views"
 import { formatCount } from "@/lib/content/listing"
 
+export function ViewTotal({ count }: { count: number }) {
+  const shown = Math.max(0, count)
+  return (
+    <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" title={`${formatCount(shown)} прегледа`}>
+      <Eye className="size-4" aria-hidden />
+      <span className="tabular-nums">{formatViews(shown)}</span>
+    </span>
+  )
+}
+
 export function ViewCount({
   type,
   id,
@@ -34,10 +44,5 @@ export function ViewCount({
     }
   }, [type, id, count])
 
-  return (
-    <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" title={`${formatCount(shown)} прегледа`}>
-      <Eye className="size-4" aria-hidden />
-      <span className="tabular-nums">{formatViews(shown)}</span>
-    </span>
-  )
+  return <ViewTotal count={shown} />
 }

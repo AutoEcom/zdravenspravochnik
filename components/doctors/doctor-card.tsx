@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Star } from "lucide-react"
 
+import { ViewTotal } from "@/components/profiles/view-count"
 import { VerifiedBadge } from "@/components/profiles/verified-badge"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
@@ -14,6 +15,7 @@ export type DoctorSummary = {
   cities: readonly string[]
   rating?: number
   reviewCount?: number
+  viewCount?: number
   shortDescription?: string | null
   acceptsNhif?: boolean
   acceptsChildren?: boolean
@@ -47,15 +49,18 @@ export function DoctorCard({ doctor }: { doctor: DoctorSummary }) {
       {doctor.shortDescription ? (
         <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{doctor.shortDescription}</p>
       ) : null}
-      {doctor.rating && doctor.rating > 0 ? (
-        <p className="mt-auto flex items-center gap-1.5 text-sm font-medium">
-          <Star className="size-4 fill-warning text-warning" />
-          {doctor.rating.toFixed(1)}
-          {doctor.reviewCount ? (
-            <span className="font-normal text-muted-foreground">· {reviewLabel(doctor.reviewCount)}</span>
-          ) : null}
-        </p>
-      ) : null}
+      <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1">
+        {doctor.rating && doctor.rating > 0 ? (
+          <p className="flex items-center gap-1.5 text-sm font-medium">
+            <Star className="size-4 fill-warning text-warning" />
+            {doctor.rating.toFixed(1)}
+            {doctor.reviewCount ? (
+              <span className="font-normal text-muted-foreground">· {reviewLabel(doctor.reviewCount)}</span>
+            ) : null}
+          </p>
+        ) : null}
+        <ViewTotal count={doctor.viewCount ?? 0} />
+      </div>
     </GlassCard>
   )
 

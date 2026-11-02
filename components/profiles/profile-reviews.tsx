@@ -1,8 +1,10 @@
-import Link from "next/link"
+import { Star } from "lucide-react"
 
 import { ReviewForm } from "@/components/profiles/review-form"
+import { ReviewLogin } from "@/components/profiles/review-login"
+import { ViewTotal } from "@/components/profiles/view-count"
 import { GlassCard } from "@/components/ui/glass-card"
-import { formatBgDate } from "@/lib/content/present"
+import { formatBgDate, reviewLabel } from "@/lib/content/present"
 import { createClient } from "@/lib/supabase/server"
 import type { User } from "@supabase/supabase-js"
 
@@ -13,14 +15,23 @@ function usesGoogle(user: User) {
   return user.app_metadata?.provider === "google" || (user.identities ?? []).some((identity) => identity.provider === "google")
 }
 
+const sourceNote =
+  "Оценките са на база отзиви в Google. Нови отзиви тук са само от потребители с Google акаунт."
+
 export async function ProfileReviews({
   doctorId,
   facilityId,
   slug,
+  rating = 0,
+  reviewCount = 0,
+  viewCount = 0,
 }: {
   doctorId?: string
   facilityId?: string
   slug: string
+  rating?: number | null
+  reviewCount?: number | null
+  viewCount?: number | null
 }) {
   const supabase = await createClient()
   const target = doctorId ? supabase.from("reviews").select("id, rating, comment, created_at").eq("doctor_id", doctorId) : facilityId ? supabase.from("reviews").select("id, rating, comment, created_at").eq("facility_id", facilityId) : null
@@ -33,6 +44,8 @@ export async function ProfileReviews({
     ? reviews.reduce((sum, review) => sum + Number(review.rating), 0) / reviews.length
     : 0
   const google = Boolean(userData.user && usesGoogle(userData.user))
+  const listedCount = reviewCount ?? 0
+  const listedRating = rating ?? 0
 
   return (
     <GlassCard>
@@ -41,8 +54,20 @@ export async function ProfileReviews({
         <p className="mt-3 text-sm font-medium">
           Средна оценка {average.toFixed(1)} от {reviews.length} {reviews.length === 1 ? "отзив" : "отзива"}
         </p>
+      ) : listedCount > 0 ? (
+        <div className="mt-3">
+          <p className="flex items-center gap-1.5 text-sm font-medium">
+            <Star className="size-4 fill-warning text-warning" />
+            {listedRating.toFixed(1)}
+            <span className="font-normal text-muted-foreground">· {reviewLabel(listedCount)}</span>
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{sourceNote}</p>
+        </div>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">Все още няма публикувани отзиви.</p>
+        <div className="mt-3">
+          <ViewTotal count={viewCount ?? 0} />
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{sourceNote}</p>
+        </div>
       )}
       {reviews.length > 0 ? (
         <ul className="mt-4 grid gap-3">
@@ -59,10 +84,7 @@ export async function ProfileReviews({
         <ReviewForm doctorId={doctorId} facilityId={facilityId} slug={slug} />
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">
-          Отзиви могат да оставят потребители, влезли с Google.{" "}
-          <Link href={`/login?next=/${slug}`} className="font-medium text-primary underline-offset-4 hover:underline">
-            Вход
-          </Link>
+          Отзиви могат да оставят потребители, влезли с Google. <ReviewLogin next={`/${slug}`} />
         </p>
       )}
       <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{disclaimer}</p>

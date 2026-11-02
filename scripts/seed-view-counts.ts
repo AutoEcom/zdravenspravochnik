@@ -27,11 +27,15 @@ function inRange(id: string, min: number, max: number) {
   return min + (hash(id) % (max - min + 1))
 }
 
-async function loadIds(supabase: ReturnType<typeof createClient<any>>, table: string) {
+async function loadPublishedIds(supabase: ReturnType<typeof createClient<any>>, table: string) {
   const ids: string[] = []
   let from = 0
   while (true) {
-    const { data, error } = await supabase.from(table).select("id").range(from, from + 999)
+    const { data, error } = await supabase
+      .from(table)
+      .select("id")
+      .eq("status", "published")
+      .range(from, from + 999)
     if (error) throw new Error(`${table}: ${error.message}`)
     if (!data?.length) break
     for (const row of data as { id?: string }[]) {
@@ -50,11 +54,20 @@ async function writeCounts(
   min: number,
   max: number
 ) {
-  for (const id of ids) {
-    const view_count = inRange(id, min, max)
-    const { error } = await supabase.from(table).update({ view_count }).eq("id", id)
-    if (error) throw new Error(`${table} ${id}: ${error.message}`)
+  let index = 0
+  async function worker() {
+    while (index < ids.length) {
+      const current = index
+      index += 1
+      const id = ids[current]
+      const view_count = inRange(id, min, max)
+      const { error } = await supabase.from(table).update({ view_count }).eq("id", id)
+      if (error) throw new Error(`${table} ${id}: ${error.message}`)
+      if ((current + 1) % 500 === 0) console.log(`${table}: ${current + 1}/${ids.length}`)
+    }
   }
+  const workers = Math.min(20, ids.length)
+  if (workers > 0) await Promise.all(Array.from({ length: workers }, () => worker()))
   return ids.length
 }
 
@@ -66,9 +79,9 @@ async function main() {
 
   const supabase = createClient<any>(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
   const [doctors, facilities, articles] = await Promise.all([
-    loadIds(supabase, "doctors"),
-    loadIds(supabase, "facilities"),
-    loadIds(supabase, "articles"),
+    loadPublishedIds(supabase, "doctors"),
+    loadPublishedIds(supabase, "facilities"),
+    loadPublishedIds(supabase, "articles"),
   ])
 
   const doctorCount = await writeCounts(supabase, "doctors", doctors, 20_000, 190_000)

@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { DoctorCard } from "@/components/doctors/doctor-card"
+import { HomePromos } from "@/components/home/home-promos"
 import { FacilityCard } from "@/components/facilities/facility-card"
 import { JsonLd } from "@/components/seo/json-ld"
 import { createPageMetadata } from "@/components/seo/page-meta"
@@ -92,6 +93,7 @@ export default async function HomePage() {
         <div id="tursene">
           <SearchForm specialties={specialties} cities={cities} />
         </div>
+        <HomePromos />
       </section>
 
       <section

@@ -1,12 +1,11 @@
 import { cache } from "react"
 import Link from "next/link"
-import { ChevronDown, LayoutGrid, Menu, Search } from "lucide-react"
+import { Menu, Search } from "lucide-react"
 
-import { CategoryIcon } from "@/components/articles/category-icon"
 import { HeaderAuth } from "@/components/layout/header-auth"
 import { LogoMark } from "@/components/layout/logo-mark"
+import { ReadingMenu } from "@/components/layout/reading-menu"
 import { SearchQueryField } from "@/components/search/search-query-field"
-import { articleAccent } from "@/lib/content/article-category"
 import { getArticleCatalog } from "@/lib/supabase/queries"
 import { safeQuery } from "@/lib/supabase/safe"
 import type { PublicCategory } from "@/lib/supabase/queries/articles"
@@ -24,69 +23,14 @@ const directory = [
 
 const readingCategories = cache(() => safeQuery(getArticleCatalog, [] as PublicCategory[]))
 
-function ReadingList({ categories, compact = false }: { categories: PublicCategory[]; compact?: boolean }) {
-  return (
-    <ul className="grid gap-1">
-      {categories.map((category) => (
-        <li key={category.id}>
-          <Link
-            href={`/articles/category/${category.slug}`}
-            className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          >
-            <span className="inline-flex size-5 items-center justify-center" style={{ color: articleAccent(category.color_accent) }}>
-              <CategoryIcon slug={category.slug} />
-            </span>
-            <span className={compact ? "leading-snug" : "leading-snug font-medium"}>{category.name}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
 async function DesktopReading() {
   const categories = await readingCategories()
-  return (
-    <details className="group relative">
-      <summary className={`${linkClass} flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden`}>
-        Полезно
-        <ChevronDown className="size-4 transition-transform duration-200 group-open:rotate-180" aria-hidden />
-      </summary>
-      <div
-        className="glass-strong absolute top-full right-0 z-50 mt-2 w-80 rounded-2xl border border-white/40 p-2 shadow-lg"
-        style={{ backgroundColor: "rgba(255,255,255,0.96)" }}
-      >
-        <Link href="/articles" className={`${linkClass} flex items-center gap-3 font-medium text-foreground`}>
-          <span className="inline-flex size-5 items-center justify-center text-primary">
-            <LayoutGrid className="size-5" aria-hidden />
-          </span>
-          Всички теми
-        </Link>
-        {categories.length > 0 ? <ReadingList categories={categories} /> : null}
-      </div>
-    </details>
-  )
+  return <ReadingMenu categories={categories} variant="desktop" />
 }
 
 async function MobileReading() {
   const categories = await readingCategories()
-  return (
-    <details className="group">
-      <summary className={`${linkClass} flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden`}>
-        Полезно
-        <ChevronDown className="size-4 transition-transform duration-200 group-open:rotate-180" aria-hidden />
-      </summary>
-      <div className="grid gap-1 pb-1 pl-2">
-        <Link href="/articles" className={`${linkClass} flex items-center gap-3`}>
-          <span className="inline-flex size-5 items-center justify-center text-primary">
-            <LayoutGrid className="size-5" aria-hidden />
-          </span>
-          Всички теми
-        </Link>
-        {categories.length > 0 ? <ReadingList categories={categories} compact /> : null}
-      </div>
-    </details>
-  )
+  return <ReadingMenu categories={categories} variant="mobile" />
 }
 
 export function Header() {

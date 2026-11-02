@@ -165,7 +165,13 @@ export function DoctorProfile({
         </GlassCard>
       ) : null}
 
-      <ProfileReviews doctorId={doctor.id} slug={doctor.slug} />
+      <ProfileReviews
+        doctorId={doctor.id}
+        slug={doctor.slug}
+        rating={doctor.rating}
+        reviewCount={doctor.review_count}
+        viewCount={doctor.view_count}
+      />
 
       {related.length > 0 ? (
         <section className="flex flex-col gap-4" aria-labelledby="related-doctors">

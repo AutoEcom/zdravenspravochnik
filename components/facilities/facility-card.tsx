@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Star } from "lucide-react"
 
+import { ViewTotal } from "@/components/profiles/view-count"
 import { VerifiedBadge } from "@/components/profiles/verified-badge"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/glass-card"
@@ -14,6 +15,7 @@ export type FacilitySummary = {
   slug?: string
   rating?: number
   reviewCount?: number
+  viewCount?: number
   shortDescription?: string | null
   acceptsNhif?: boolean
   acceptsChildren?: boolean
@@ -41,15 +43,18 @@ export function FacilityCard({ facility }: { facility: FacilitySummary }) {
       {facility.shortDescription ? (
         <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{facility.shortDescription}</p>
       ) : null}
-      {facility.rating && facility.rating > 0 ? (
-        <p className="mt-auto flex items-center gap-1.5 text-sm font-medium">
-          <Star className="size-4 fill-warning text-warning" />
-          {facility.rating.toFixed(1)}
-          {facility.reviewCount ? (
-            <span className="font-normal text-muted-foreground">· {reviewLabel(facility.reviewCount)}</span>
-          ) : null}
-        </p>
-      ) : null}
+      <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1">
+        {facility.rating && facility.rating > 0 ? (
+          <p className="flex items-center gap-1.5 text-sm font-medium">
+            <Star className="size-4 fill-warning text-warning" />
+            {facility.rating.toFixed(1)}
+            {facility.reviewCount ? (
+              <span className="font-normal text-muted-foreground">· {reviewLabel(facility.reviewCount)}</span>
+            ) : null}
+          </p>
+        ) : null}
+        <ViewTotal count={facility.viewCount ?? 0} />
+      </div>
     </GlassCard>
   )
 

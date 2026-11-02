@@ -151,7 +151,13 @@ export function FacilityProfile({
         </GlassCard>
       ) : null}
 
-      <ProfileReviews facilityId={facility.id} slug={facility.slug} />
+      <ProfileReviews
+        facilityId={facility.id}
+        slug={facility.slug}
+        rating={facility.rating}
+        reviewCount={facility.review_count}
+        viewCount={facility.view_count}
+      />
 
       {related.length > 0 ? (
         <section className="flex flex-col gap-4" aria-labelledby="related-facilities">
