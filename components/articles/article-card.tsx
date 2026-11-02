@@ -48,12 +48,10 @@ export function ArticleCard({
           </span>
         ) : null}
         <Title className="text-xl leading-snug">{article.title}</Title>
-        {article.excerpt ? <p className="text-sm leading-relaxed text-muted-foreground">{article.excerpt}</p> : null}
-        {article.published_at ? (
-          <time dateTime={article.published_at} className="mt-auto text-sm text-muted-foreground">
-            {formatBgDate(article.published_at)}
-          </time>
-        ) : null}
+        <p className="line-clamp-3 min-h-[4.275rem] text-sm leading-relaxed text-muted-foreground">{article.excerpt}</p>
+        <time dateTime={article.published_at ?? undefined} className="mt-auto text-sm text-muted-foreground">
+          {article.published_at ? formatBgDate(article.published_at) : "\u00a0"}
+        </time>
       </GlassCard>
     </Link>
   )

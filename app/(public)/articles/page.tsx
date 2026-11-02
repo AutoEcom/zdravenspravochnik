@@ -80,9 +80,9 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
       </div>
       <CategoryNav categories={catalog} counts={counts} />
       {listing.rows.length > 0 ? (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {listing.rows.map((article) => (
-            <li key={article.id}>
+            <li key={article.id} className="h-full">
               <ArticleCard
                 article={article}
                 category={article.category_id ? byId.get(article.category_id) : null}

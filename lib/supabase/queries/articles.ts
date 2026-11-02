@@ -1,6 +1,7 @@
 import type { Article } from "@/types/database"
 
 import { topicDisplayCount, topicsDisplayTotal } from "@/lib/content/article-category"
+import { cardExcerpt } from "@/lib/content/article-excerpt"
 import { articleCover } from "@/lib/content/slug"
 import { createClient } from "@/lib/supabase/server"
 
@@ -51,14 +52,27 @@ export const ARTICLE_PAGE_SIZE = 12
 
 const HOME_SLUGS = ["jensko-zdrave", "detsko-zdrave", "simptomi-i-sastoyaniya", "saveti-predi-pregled"]
 
-const listColumns = "id, slug, title, excerpt, published_at, cover_url, cover_image_url, category_id, source" as const
+const listColumns = "id, slug, title, excerpt, content, published_at, cover_url, cover_image_url, category_id, source" as const
 
-function toListItem(article: Article): ArticleListItem {
+type ListRow = {
+  id: string
+  slug: string
+  title: string
+  excerpt: string | null
+  content?: string | null
+  published_at: string | null
+  cover_url: string | null
+  cover_image_url: string | null
+  category_id?: string | null
+  source?: string | null
+}
+
+function toListItem(article: ListRow | Article): ArticleListItem {
   return {
     id: article.id,
     slug: article.slug,
     title: article.title,
-    excerpt: article.excerpt,
+    excerpt: cardExcerpt(article.excerpt, "content" in article ? article.content : null),
     published_at: article.published_at,
     cover_url: article.cover_url,
     cover_image_url: article.cover_image_url,
@@ -146,12 +160,12 @@ export async function getPublishedArticlesPage(
       .range(from, to)
     if (fallback.error) throw fallback.error
     return {
-      rows: (fallback.data ?? []).map((article) => ({ ...article, category_id: null, source: null })),
+      rows: (fallback.data ?? []).map((article) => toListItem({ ...article, category_id: null, source: null })),
       total: fallback.count ?? 0,
     }
   }
   if (error) throw error
-  return { rows: data ?? [], total: count ?? 0 }
+  return { rows: (data ?? []).map((article) => toListItem(article)), total: count ?? 0 }
 }
 
 async function loadArticleList(
@@ -168,17 +182,17 @@ async function loadArticleList(
 
   const filtered = options.categoryId ? base().eq("category_id", options.categoryId) : base()
   const first = await filtered
-  if (!first.error) return first.data ?? []
+  if (!first.error) return (first.data ?? []).map((article) => toListItem(article))
   if (options.categoryId || !/category_id|source/i.test(first.error.message)) throw first.error
 
   const fallback = await supabase
     .from("articles")
-    .select("id, slug, title, excerpt, published_at, cover_url, cover_image_url")
+    .select("id, slug, title, excerpt, content, published_at, cover_url, cover_image_url")
     .eq("status", "published")
     .order("published_at", { ascending: false, nullsFirst: false })
     .limit(options.limit)
   if (fallback.error) throw fallback.error
-  return (fallback.data ?? []).map((article) => ({ ...article, category_id: null, source: null }))
+  return (fallback.data ?? []).map((article) => toListItem({ ...article, category_id: null, source: null }))
 }
 
 export async function getRelatedArticles(
@@ -293,7 +307,7 @@ export async function getReadingDigest(): Promise<ReadingDigest> {
     const latest = (await getPublishedArticles(3)).map(toListItem)
     return { ...stats, articleCount, groups: [], latest }
   }
-  const rows = data ?? []
+  const rows = (data ?? []).map((article) => toListItem(article))
   const groups = chosen.map((category) => ({
     category,
     total: topicDisplayCount(category.slug, counts.get(category.id) ?? 0),

@@ -16,10 +16,12 @@ export function ArticleView({
   article,
   category = null,
   related = [],
+  editHref = null,
 }: {
   article: Article
   category?: PublicCategory | null
   related?: RelatedArticle[]
+  editHref?: string | null
 }) {
   const cover = articleCover(article)
   const published = article.published_at
@@ -49,9 +51,14 @@ export function ArticleView({
             ) : (
               <p className="text-sm font-medium text-primary">Полезно</p>
             )}
-            <h1 className="border-t-2 pt-4" style={{ borderColor: accent }}>
-              {article.title}
-            </h1>
+            <div className="flex flex-wrap items-start justify-between gap-3 border-t-2 pt-4" style={{ borderColor: accent }}>
+              <h1 className="min-w-0 flex-1">{article.title}</h1>
+              {editHref ? (
+                <Link href={editHref} className={buttonVariants({ variant: "outline", className: "shrink-0" })}>
+                  Редактирай
+                </Link>
+              ) : null}
+            </div>
             {article.excerpt ? <p className="text-lg leading-relaxed text-muted-foreground">{article.excerpt}</p> : null}
             {published ? (
               <time dateTime={published} className="text-sm text-muted-foreground">

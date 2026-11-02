@@ -45,9 +45,9 @@ export function ReadingSection({ digest }: { digest: ReadingDigest }) {
                     Виж всички
                   </Link>
                 </div>
-                <ul className="grid gap-4 sm:grid-cols-2">
+                <ul className="grid items-stretch gap-4 sm:grid-cols-2">
                   {group.articles.map((article) => (
-                    <li key={article.id}>
+                    <li key={article.id} className="h-full">
                       <ArticleCard article={article} category={group.category} titleAs="p" />
                     </li>
                   ))}
@@ -57,9 +57,9 @@ export function ReadingSection({ digest }: { digest: ReadingDigest }) {
           })}
         </div>
       ) : digest.latest.length > 0 ? (
-        <ul className="grid gap-4 md:grid-cols-3">
+        <ul className="grid items-stretch gap-4 md:grid-cols-3">
           {digest.latest.map((article) => (
-            <li key={article.id}>
+            <li key={article.id} className="h-full">
               <ArticleCard article={article} titleAs="p" />
             </li>
           ))}
