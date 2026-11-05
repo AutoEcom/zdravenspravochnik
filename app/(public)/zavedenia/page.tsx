@@ -32,7 +32,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
   return createPageMetadata({
     title: page > 1 ? `Здравни заведения — страница ${page}` : group ? `${group} — здравни заведения` : "Здравни заведения",
-    description: "Болници, медицински центрове, лаборатории и дентални практики.",
+    description: "Болници, центрове, лаборатории и практики — на едно място.",
     path: withPage("/zavedenia", filters, page),
     index: !filtered,
   })
@@ -77,7 +77,7 @@ export default async function FacilitiesPage({ searchParams }: PageProps) {
       <div className="max-w-3xl">
         <h1>Здравни заведения</h1>
         <p className="mt-3 leading-relaxed text-muted-foreground">
-          Болници, медицински центрове, лаборатории и дентални практики.
+          Болници, центрове, лаборатории и практики — на едно място.
         </p>
       </div>
       <ListingHint />
@@ -101,7 +101,11 @@ export default async function FacilitiesPage({ searchParams }: PageProps) {
         </ul>
       ) : (
         <GlassCard className="flex flex-col items-start gap-4">
-          <p>{result.total > 0 ? "Няма профили на тази страница." : "Няма публикувани профили за този избор."}</p>
+          <p>
+            {result.total > 0
+              ? "Няма профили на тази страница."
+              : "Няма профили за тази комбинация. Променете специалност или град."}
+          </p>
           <Link href={withPage("/search", { q, specialty, city }, 1)} className={buttonVariants({ variant: "outline" })}>
             Към търсенето
           </Link>

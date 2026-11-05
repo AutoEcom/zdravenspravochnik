@@ -7,13 +7,12 @@ import { JsonLd } from "@/components/seo/json-ld"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { breadcrumbJsonLd, collectionPageJsonLd } from "@/components/seo/schemas"
 import { ListingPagination } from "@/components/search/listing-pagination"
-import { categoriesLabel, categoryPathFromQuery, publishedArticlesLabel, topicsDisplayTotal } from "@/lib/content/article-category"
+import { categoryPathFromQuery } from "@/lib/content/article-category"
 import { articlePublicPath } from "@/lib/content/article-path"
 import { parsePage, withPage } from "@/lib/content/listing"
 import {
   ARTICLE_PAGE_SIZE,
   getArticleCatalog,
-  getArticleStats,
   getPublishedArticlesPage,
   getPublishedCountsByCategory,
 } from "@/lib/supabase/queries"
@@ -27,7 +26,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const page = parsePage((await searchParams).page)
   return createPageMetadata({
     title: page > 1 ? `Полезно — страница ${page}` : "Полезно",
-    description: "Материали по симптоми, изследвания, детско и женско здраве и подготовка за преглед.",
+    description: "Статии по теми: симптоми, изследвания, женско и детско здраве.",
     path: withPage("/articles", {}, page),
     index: page === 1,
   })
@@ -39,9 +38,8 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
   if (legacy) permanentRedirect(legacy)
 
   const page = parsePage(params.page)
-  const [catalog, stats, listing, counts] = await Promise.all([
+  const [catalog, listing, counts] = await Promise.all([
     safeQuery(getArticleCatalog, []),
-    safeQuery(getArticleStats, { articleCount: 0, categoryCount: 0 }),
     safeQuery(() => getPublishedArticlesPage(page), { rows: [], total: 0 }),
     safeQuery(getPublishedCountsByCategory, {}),
   ])
@@ -58,7 +56,7 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
           ]),
           collectionPageJsonLd({
             name: "Полезно",
-            description: "Материали по симптоми, изследвания, детско и женско здраве и подготовка за преглед.",
+            description: "Статии по теми: симптоми, изследвания, женско и детско здраве.",
             path,
             total: listing.total,
             items: listing.rows.map((article, index) => ({
@@ -72,10 +70,10 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
       <div className="max-w-[65ch]">
         <h1>Полезно</h1>
         <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
-          Материали, които помагат да се ориентирате преди преглед. Те не поставят диагноза и не заместват лекар.
+          Статии по теми: симптоми, изследвания, женско и детско здраве.
         </p>
         <p className="mt-3 text-sm text-muted-foreground">
-          {publishedArticlesLabel(topicsDisplayTotal(catalog, counts))} · {categoriesLabel(stats.categoryCount)}
+          Материали с информативна цел. Не заместват преглед при лекар.
         </p>
       </div>
       <CategoryNav categories={catalog} counts={counts} />

@@ -61,9 +61,9 @@ export default async function HomePage() {
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 pt-12 pb-6 sm:pt-20 sm:pb-10">
         <div className="max-w-3xl">
           <p className="text-sm font-medium text-primary">Здравен справочник</p>
-          <h1 className="mt-3">Лекари и здравни заведения в България</h1>
+          <h1 className="mt-3">Единна здравна платформа</h1>
           <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">
-            Публичен справочник с контакти по специалност и град.
+            Намерете лекар или заведение по специалност и град.
           </p>
           <p className="mt-3 text-sm text-muted-foreground">
             Специалистите и заведенията могат да{" "}

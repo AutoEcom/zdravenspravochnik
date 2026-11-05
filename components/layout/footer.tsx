@@ -109,8 +109,7 @@ export function Footer() {
             </span>
           </Link>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            Справочник на лекари и здравни заведения в България. Търсене по специалност и град.
-            Специалистите могат да заявят и управляват профила си.
+            Единна платформа за лекари, заведения и здравни теми в България.
           </p>
           <ul className="mt-4 flex gap-2">
             {profiles.map((item) => (

@@ -3,12 +3,15 @@ import { notFound } from "next/navigation"
 
 import { ArticleBreadcrumb } from "@/components/articles/article-breadcrumb"
 import { ArticleCard } from "@/components/articles/article-card"
+import { CategoryDescription } from "@/components/articles/category-description"
 import { CategoryNav } from "@/components/articles/category-nav"
 import { JsonLd } from "@/components/seo/json-ld"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { breadcrumbJsonLd, collectionPageJsonLd } from "@/components/seo/schemas"
 import { ListingPagination } from "@/components/search/listing-pagination"
 import { articleAccent, articlesInTopic, topicDisplayCount } from "@/lib/content/article-category"
+import { categoryDescription, descriptionPlainText } from "@/lib/content/category-description"
+import { getSearchOptions } from "@/lib/content/catalog"
 import { articlePublicPath } from "@/lib/content/article-path"
 import { parsePage, withPage } from "@/lib/content/listing"
 import {
@@ -45,7 +48,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     })
   }
 
-  const description = category.description?.trim() || `Материали в тема „${category.name}“.`
+  const description = descriptionPlainText(categoryDescription(slug, category.description, category.name))
   return createPageMetadata({
     title: page > 1 ? `${category.name} — страница ${page}` : category.name,
     description,
@@ -60,14 +63,16 @@ export default async function ArticleCategoryPage({ params, searchParams }: Page
   const category = await getCategoryBySlug(slug).catch(() => null)
   if (!category) notFound()
 
-  const [catalog, listing, counts] = await Promise.all([
+  const [catalog, listing, counts, options] = await Promise.all([
     getArticleCatalog().catch(() => []),
     getPublishedArticlesPage(page, category.id).catch(() => ({ rows: [], total: 0 })),
     getPublishedCountsByCategory().catch((): Record<string, number> => ({})),
+    getSearchOptions(),
   ])
   const byId = new Map(catalog.map((item) => [item.id, item]))
   const accent = articleAccent(category.color_accent)
-  const description = category.description?.trim() || `Материали в тема „${category.name}“.`
+  const description = categoryDescription(category.slug, category.description, category.name)
+  const plainDescription = descriptionPlainText(description)
   const path = withPage(`/articles/category/${category.slug}`, {}, page)
 
   return (
@@ -81,7 +86,7 @@ export default async function ArticleCategoryPage({ params, searchParams }: Page
           ]),
           collectionPageJsonLd({
             name: category.name,
-            description,
+            description: plainDescription,
             path,
             total: listing.total,
             items: listing.rows.map((article, index) => ({
@@ -101,7 +106,7 @@ export default async function ArticleCategoryPage({ params, searchParams }: Page
       />
       <header className="max-w-[65ch] border-t-2 pt-5" style={{ borderColor: accent }}>
         <h1>{category.name}</h1>
-        <p className="mt-3 text-lg leading-relaxed text-muted-foreground">{description}</p>
+        <CategoryDescription text={description} specialties={options.specialties} />
         <p className="mt-3 text-sm text-muted-foreground">
           {articlesInTopic(topicDisplayCount(category.slug, counts[category.id] ?? 0))}
         </p>

@@ -29,7 +29,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
   return createPageMetadata({
     title: page > 1 ? `Специалисти — страница ${page}` : "Специалисти",
-    description: "Публикувани лекари по специалност, град и име.",
+    description: "Търсене по направление и град. Профили с контакти и актуални данни.",
     path: withPage("/specialisti", filters, page),
     index: !filtered,
   })
@@ -72,9 +72,11 @@ export default async function SpecialistsPage({ searchParams }: PageProps) {
       <div className="max-w-3xl">
         <h1>Специалисти</h1>
         <p className="mt-3 leading-relaxed text-muted-foreground">
-          Публикувани лекари по специалност, град и име.{" "}
-          <Link href="/articles" className="text-primary underline underline-offset-4">
-            Материали преди посещение
+          Търсене по направление и град. Профили с контакти и актуални данни.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          <Link href="/articles" className="underline-offset-4 hover:underline">
+            Полезно
           </Link>
         </p>
       </div>
@@ -93,7 +95,11 @@ export default async function SpecialistsPage({ searchParams }: PageProps) {
         </ul>
       ) : (
         <GlassCard className="flex flex-col items-start gap-4">
-          <p>{result.total > 0 ? "Няма профили на тази страница." : "Няма публикувани профили за този избор."}</p>
+          <p>
+            {result.total > 0
+              ? "Няма профили на тази страница."
+              : "Няма профили за тази комбинация. Променете специалност или град."}
+          </p>
           <Link href={withPage("/search", filters, 1)} className={buttonVariants({ variant: "outline" })}>
             Към търсенето
           </Link>
