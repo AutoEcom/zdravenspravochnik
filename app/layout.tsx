@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
+import { NavigationProgress } from "@/components/layout/navigation-progress"
 import { ThemeProvider } from "@/components/theme-provider"
 import { JsonLd } from "@/components/seo/json-ld"
 import { organizationJsonLd } from "@/components/seo/schemas"
@@ -54,6 +55,7 @@ export default function RootLayout({
           forcedTheme="light"
           disableTransitionOnChange
         >
+          <NavigationProgress />
           <JsonLd data={organizationJsonLd()} />
           {children}
           <Toaster />

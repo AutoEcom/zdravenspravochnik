@@ -4,6 +4,8 @@ import { useEffect, useId, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 
+import { beginNavigation } from "@/components/layout/navigation-progress"
+
 type ProfileSuggestion = {
   kind: "doctor" | "facility"
   slug: string
@@ -88,6 +90,7 @@ export function SearchQueryField({
 
   function openProfile(item: ProfileSuggestion) {
     setOpen(false)
+    beginNavigation()
     router.push(`/${item.slug}`)
   }
 

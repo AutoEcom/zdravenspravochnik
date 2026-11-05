@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { ChevronDown, LayoutGrid } from "lucide-react"
 
 import { CategoryIcon } from "@/components/articles/category-icon"
@@ -22,6 +23,11 @@ export function ReadingMenu({
   const rootRef = useRef<HTMLDivElement>(null)
   const panelId = useId()
   const desktop = variant === "desktop"
+  const pathname = usePathname()
+
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
 
   useEffect(() => {
     if (!open) return

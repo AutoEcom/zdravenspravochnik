@@ -1,9 +1,10 @@
 import { cache } from "react"
 import Link from "next/link"
-import { Menu, Search } from "lucide-react"
+import { Search } from "lucide-react"
 
 import { HeaderAuth } from "@/components/layout/header-auth"
 import { LogoMark } from "@/components/layout/logo-mark"
+import { MobileNav } from "@/components/layout/mobile-nav"
 import { ReadingMenu } from "@/components/layout/reading-menu"
 import { SearchQueryField } from "@/components/search/search-query-field"
 import { getArticleCatalog } from "@/lib/supabase/queries"
@@ -81,34 +82,24 @@ export function Header() {
               <Search className="size-5" />
             </Link>
 
-            <details className="relative lg:hidden">
-              <summary className="flex size-11 cursor-pointer list-none items-center justify-center rounded-xl transition-colors duration-200 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 [&::-webkit-details-marker]:hidden">
-                <span className="sr-only">Меню</span>
-                <Menu className="size-5" />
-              </summary>
-              <nav
-                className="glass-strong absolute right-0 z-50 mt-2 grid max-h-[70vh] w-72 gap-1 overflow-y-auto rounded-2xl border border-white/40 p-2 shadow-lg"
-                style={{ backgroundColor: "rgba(255,255,255,0.96)" }}
-                aria-label="Мобилна"
-              >
-                <form action="/search" className="p-1">
-                  <label className="sr-only" htmlFor="menu-search">
-                    Търсене
-                  </label>
-                  <SearchQueryField
-                    id="menu-search"
-                    placeholder="Лекар, специалност или град"
-                    inputClassName={headerSearchClass}
-                  />
-                </form>
-                {directory.map((item) => (
-                  <Link key={item.href} href={item.href} className={linkClass}>
-                    {item.label}
-                  </Link>
-                ))}
-                <MobileReading />
-              </nav>
-            </details>
+            <MobileNav>
+              <form action="/search" className="p-1">
+                <label className="sr-only" htmlFor="menu-search">
+                  Търсене
+                </label>
+                <SearchQueryField
+                  id="menu-search"
+                  placeholder="Лекар, специалност или град"
+                  inputClassName={headerSearchClass}
+                />
+              </form>
+              {directory.map((item) => (
+                <Link key={item.href} href={item.href} className={linkClass}>
+                  {item.label}
+                </Link>
+              ))}
+              <MobileReading />
+            </MobileNav>
           </div>
         </div>
       </div>
