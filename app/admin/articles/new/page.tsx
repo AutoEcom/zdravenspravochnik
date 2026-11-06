@@ -21,7 +21,7 @@ export default async function NewArticlePage() {
   const admin = createAdminClient()
   const { data: categories } = await admin
     .from("article_categories")
-    .select("id, name, is_published, sort_order")
+    .select("id, name, slug, is_published, sort_order")
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true })
 

@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { SponsoredBadge } from "@/components/articles/sponsored-badge"
 import { articleAccent } from "@/lib/content/article-category"
 import { articlePublicPath } from "@/lib/content/article-path"
 import { formatBgDate } from "@/lib/content/present"
@@ -39,12 +40,17 @@ export function ArticleCard({
             </span>
           </div>
         )}
-        {category ? (
-          <span
-            className="inline-flex w-fit items-center rounded-full border bg-white/80 px-2.5 py-1 text-xs font-medium"
-            style={{ borderColor: accent, color: accent }}
-          >
-            {category.name}
+        {category || article.is_sponsored ? (
+          <span className="flex flex-wrap items-center gap-2">
+            {category ? (
+              <span
+                className="inline-flex w-fit items-center rounded-full border bg-white/80 px-2.5 py-1 text-xs font-medium"
+                style={{ borderColor: accent, color: accent }}
+              >
+                {category.name}
+              </span>
+            ) : null}
+            {article.is_sponsored ? <SponsoredBadge /> : null}
           </span>
         ) : null}
         <Title className="text-xl leading-snug">{article.title}</Title>

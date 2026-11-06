@@ -36,7 +36,7 @@ export default async function EditArticlePage({
   const status = data.status === "published" || data.status === "archived" ? data.status : "draft"
   const { data: categories } = await admin
     .from("article_categories")
-    .select("id, name, is_published, sort_order")
+    .select("id, name, slug, is_published, sort_order")
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true })
 
@@ -54,6 +54,8 @@ export default async function EditArticlePage({
         metaDescription={data.meta_description ?? ""}
         ogImageUrl={data.og_image_url ?? ""}
         categoryId={data.category_id ?? ""}
+        sponsorName={data.sponsor_name ?? ""}
+        sponsorUrl={data.sponsor_url ?? ""}
         categories={categories ?? []}
         saved={saved === "1"}
       />

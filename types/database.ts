@@ -181,6 +181,9 @@ export type Article = {
   meta_description: string | null
   category_id: string | null
   author_id: string | null
+  is_sponsored: boolean
+  sponsor_name: string | null
+  sponsor_url: string | null
   status: PublishStatus
   source: string | null
   view_count: number
@@ -342,6 +345,9 @@ export type ArticleInsert = {
   meta_description?: string | null
   category_id?: string | null
   author_id?: string | null
+  is_sponsored?: boolean
+  sponsor_name?: string | null
+  sponsor_url?: string | null
   status?: PublishStatus
   source?: string | null
   view_count?: number

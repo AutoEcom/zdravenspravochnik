@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { ArticleBreadcrumb } from "@/components/articles/article-breadcrumb"
 import { ArticleCard } from "@/components/articles/article-card"
 import { CategoryDescription } from "@/components/articles/category-description"
+import { PartnerInquiry } from "@/components/home/partner-inquiry"
 import { CategoryNav } from "@/components/articles/category-nav"
 import { JsonLd } from "@/components/seo/json-ld"
 import { createPageMetadata } from "@/components/seo/page-meta"
@@ -48,7 +49,10 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     })
   }
 
-  const description = descriptionPlainText(categoryDescription(slug, category.description, category.name))
+  const description =
+    slug === "partneri"
+      ? "Тук публикуваме материали от партньори на Здравен справочник — полезни теми с ясен етикет Спонсорирано."
+      : descriptionPlainText(categoryDescription(slug, category.description, category.name))
   return createPageMetadata({
     title: page > 1 ? `${category.name} — страница ${page}` : category.name,
     description,
@@ -71,8 +75,11 @@ export default async function ArticleCategoryPage({ params, searchParams }: Page
   ])
   const byId = new Map(catalog.map((item) => [item.id, item]))
   const accent = articleAccent(category.color_accent)
-  const description = categoryDescription(category.slug, category.description, category.name)
-  const plainDescription = descriptionPlainText(description)
+  const partner = category.slug === "partneri"
+  const description = partner
+    ? "Тук публикуваме материали от партньори на Здравен справочник — полезни теми с ясен етикет Спонсорирано."
+    : categoryDescription(category.slug, category.description, category.name)
+  const plainDescription = partner ? description : descriptionPlainText(description)
   const path = withPage(`/articles/category/${category.slug}`, {}, page)
 
   return (
@@ -106,7 +113,18 @@ export default async function ArticleCategoryPage({ params, searchParams }: Page
       />
       <header className="max-w-[65ch] border-t-2 pt-5" style={{ borderColor: accent }}>
         <h1>{category.name}</h1>
-        <CategoryDescription text={description} specialties={options.specialties} />
+        {partner ? (
+          <>
+            <p className="mt-3 text-lg leading-relaxed text-muted-foreground">{description}</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Искате статия или споменаване пред нашата аудитория? Изпратете запитване чрез „
+              <PartnerInquiry appearance="text" />
+              “.
+            </p>
+          </>
+        ) : (
+          <CategoryDescription text={description} specialties={options.specialties} />
+        )}
         <p className="mt-3 text-sm text-muted-foreground">
           {articlesInTopic(topicDisplayCount(category.slug, counts[category.id] ?? 0))}
         </p>

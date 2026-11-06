@@ -50,6 +50,7 @@ const directory = [
 
 const reading = [
   { href: "/articles", label: "Всички теми" },
+  { href: "/articles/category/partneri", label: "Партньори" },
   { href: "/articles/category/simptomi-i-sastoyaniya", label: "Симптоми и състояния" },
   { href: "/articles/category/izsledvaniya-i-podgotovka", label: "Изследвания и подготовка" },
   { href: "/articles/category/detsko-zdrave", label: "Детско здраве" },

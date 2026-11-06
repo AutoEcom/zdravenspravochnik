@@ -4,6 +4,7 @@ import { ShareButton } from "@/components/profiles/share-button"
 import { ViewCount } from "@/components/profiles/view-count"
 
 import { AdSlot } from "@/components/articles/ad-slot"
+import { SponsoredBadge } from "@/components/articles/sponsored-badge"
 import { ArticleBody } from "@/components/articles/article-body"
 import { ArticleBreadcrumb } from "@/components/articles/article-breadcrumb"
 import { buttonVariants } from "@/components/ui/button"
@@ -48,17 +49,20 @@ export function ArticleView({
                 { name: article.title },
               ]}
             />
-            {category ? (
-              <Link
-                href={`/articles/category/${category.slug}`}
-                className="inline-flex min-h-11 w-fit items-center rounded-full border bg-white/80 px-3 text-sm font-medium"
-                style={{ borderColor: accent, color: accent }}
-              >
-                {category.name}
-              </Link>
-            ) : (
-              <p className="text-sm font-medium text-primary">Полезно</p>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {category ? (
+                <Link
+                  href={`/articles/category/${category.slug}`}
+                  className="inline-flex min-h-11 w-fit items-center rounded-full border bg-white/80 px-3 text-sm font-medium"
+                  style={{ borderColor: accent, color: accent }}
+                >
+                  {category.name}
+                </Link>
+              ) : (
+                <p className="text-sm font-medium text-primary">Полезно</p>
+              )}
+              {article.is_sponsored ? <SponsoredBadge /> : null}
+            </div>
             <div className="flex flex-wrap items-start justify-between gap-3 border-t-2 pt-4" style={{ borderColor: accent }}>
               <h1 className="min-w-0 flex-1">{article.title}</h1>
               {editHref ? (
@@ -67,6 +71,24 @@ export function ArticleView({
                 </Link>
               ) : null}
             </div>
+            {article.is_sponsored && article.sponsor_name ? (
+              <p className="text-sm text-muted-foreground">
+                Материалът е предоставен от{" "}
+                {article.sponsor_url ? (
+                  <a
+                    href={article.sponsor_url}
+                    target="_blank"
+                    rel="sponsored noopener"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    {article.sponsor_name}
+                  </a>
+                ) : (
+                  article.sponsor_name
+                )}
+                .
+              </p>
+            ) : null}
             {article.excerpt ? <p className="text-lg leading-relaxed text-muted-foreground">{article.excerpt}</p> : null}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {published ? (

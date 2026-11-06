@@ -25,6 +25,7 @@ export type ArticleListItem = {
   cover_image_url: string | null
   category_id: string | null
   source: string | null
+  is_sponsored: boolean
 }
 
 export type RelatedArticle = {
@@ -52,7 +53,10 @@ export const ARTICLE_PAGE_SIZE = 12
 
 const HOME_SLUGS = ["jensko-zdrave", "detsko-zdrave", "simptomi-i-sastoyaniya", "saveti-predi-pregled"]
 
-const listColumns = "id, slug, title, excerpt, content, published_at, cover_url, cover_image_url, category_id, source" as const
+const listColumns =
+  "id, slug, title, excerpt, content, published_at, cover_url, cover_image_url, category_id, source, is_sponsored" as const
+const listColumnsWithoutSponsor =
+  "id, slug, title, excerpt, content, published_at, cover_url, cover_image_url, category_id, source" as const
 
 type ListRow = {
   id: string
@@ -65,6 +69,7 @@ type ListRow = {
   cover_image_url: string | null
   category_id?: string | null
   source?: string | null
+  is_sponsored?: boolean | null
 }
 
 function toListItem(article: ListRow | Article): ArticleListItem {
@@ -78,6 +83,7 @@ function toListItem(article: ListRow | Article): ArticleListItem {
     cover_image_url: article.cover_image_url,
     category_id: article.category_id ?? null,
     source: article.source ?? null,
+    is_sponsored: article.is_sponsored === true,
   }
 }
 
@@ -151,6 +157,20 @@ export async function getPublishedArticlesPage(
   if (categoryId) query = query.eq("category_id", categoryId)
 
   const { data, error, count } = await query.range(from, to)
+  if (error && /is_sponsored/i.test(error.message)) {
+    let retry = supabase
+      .from("articles")
+      .select(listColumnsWithoutSponsor, { count: "exact" })
+      .eq("status", "published")
+      .order("published_at", { ascending: false, nullsFirst: false })
+    if (categoryId) retry = retry.eq("category_id", categoryId)
+    const fallback = await retry.range(from, to)
+    if (fallback.error) throw fallback.error
+    return {
+      rows: (fallback.data ?? []).map((article) => toListItem(article)),
+      total: fallback.count ?? 0,
+    }
+  }
   if (error && !categoryId && /category_id|source/i.test(error.message)) {
     const fallback = await supabase
       .from("articles")
@@ -183,6 +203,19 @@ async function loadArticleList(
   const filtered = options.categoryId ? base().eq("category_id", options.categoryId) : base()
   const first = await filtered
   if (!first.error) return (first.data ?? []).map((article) => toListItem(article))
+  if (/is_sponsored/i.test(first.error.message)) {
+    const retryBase = () =>
+      supabase
+        .from("articles")
+        .select(listColumnsWithoutSponsor)
+        .eq("status", "published")
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .limit(options.limit)
+    const retry = options.categoryId ? retryBase().eq("category_id", options.categoryId) : retryBase()
+    const second = await retry
+    if (second.error) throw second.error
+    return (second.data ?? []).map((article) => toListItem(article))
+  }
   if (options.categoryId || !/category_id|source/i.test(first.error.message)) throw first.error
 
   const fallback = await supabase

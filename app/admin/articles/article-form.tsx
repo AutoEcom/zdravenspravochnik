@@ -18,6 +18,7 @@ import type { PublishStatus } from "@/types/database"
 export type ArticleCategoryOption = {
   id: string
   name: string
+  slug: string
   is_published: boolean
 }
 
@@ -45,6 +46,8 @@ export function ArticleForm({
   metaDescription,
   ogImageUrl,
   categoryId,
+  sponsorName = "",
+  sponsorUrl = "",
   categories,
   saved = false,
 }: {
@@ -59,6 +62,8 @@ export function ArticleForm({
   metaDescription: string
   ogImageUrl: string
   categoryId: string
+  sponsorName?: string
+  sponsorUrl?: string
   categories: ArticleCategoryOption[]
   saved?: boolean
 }) {
@@ -68,6 +73,8 @@ export function ArticleForm({
   const [slugTouched, setSlugTouched] = useState(Boolean(id))
   const [metaTitleValue, setMetaTitleValue] = useState(metaTitle)
   const [metaDescriptionValue, setMetaDescriptionValue] = useState(metaDescription)
+  const [categoryValue, setCategoryValue] = useState(categoryId)
+  const partner = categories.some((category) => category.id === categoryValue && category.slug === "partneri")
 
   useEffect(() => {
     if (saved) toast.success("Статията е запазена.")
@@ -128,7 +135,14 @@ export function ArticleForm({
         <div className="grid gap-2">
           <Label htmlFor="category_id">Категория</Label>
           {categories.length > 0 ? (
-            <select id="category_id" name="category_id" defaultValue={categoryId} required className={fieldClass}>
+            <select
+              id="category_id"
+              name="category_id"
+              value={categoryValue}
+              required
+              className={fieldClass}
+              onChange={(event) => setCategoryValue(event.target.value)}
+            >
               <option value="">Изберете категория</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -147,6 +161,32 @@ export function ArticleForm({
             </p>
           )}
         </div>
+        {partner ? (
+          <div className="grid gap-4 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+            <label className="flex min-h-11 items-center gap-2 text-sm font-medium">
+              <input type="checkbox" checked readOnly disabled className="size-4 accent-primary" />
+              Спонсорирано
+            </label>
+            <div className="grid gap-2">
+              <Label htmlFor="sponsor_name">Партньор</Label>
+              <Input id="sponsor_name" name="sponsor_name" defaultValue={sponsorName} maxLength={120} required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="sponsor_url">Адрес на партньора</Label>
+              <Input
+                id="sponsor_url"
+                name="sponsor_url"
+                type="url"
+                inputMode="url"
+                defaultValue={sponsorUrl}
+                placeholder="https://"
+                maxLength={500}
+                required
+              />
+              <p className="text-sm text-muted-foreground">Задължителен https адрес.</p>
+            </div>
+          </div>
+        ) : null}
         <div className="grid gap-2">
           <Label htmlFor="content">Текст</Label>
           <textarea id="content" name="content" rows={14} maxLength={60000} defaultValue={content} className={fieldClass} />

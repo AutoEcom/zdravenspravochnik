@@ -1,4 +1,6 @@
 export const categoryDescriptionTemplates: Record<string, string> = {
+  partneri:
+    "Материали от партньори на платформата. Етикетирани като спонсорирано съдържание.",
   "simptomi-i-sastoyaniya":
     "Чести оплаквания и кога обикновено се търси помощ. При главоболие и световъртеж често се насочват към [невролог](/category/specialisti/nevrologia); при кожни промени — към [дерматолог](/category/specialisti/dermatologia); при гръдна болка или високо налягане — към [кардиолог](/category/specialisti/kardiologia).",
   "izsledvaniya-i-podgotovka":

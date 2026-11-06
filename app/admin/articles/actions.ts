@@ -72,6 +72,18 @@ export async function saveArticle(_prev: ArticleFormState, formData: FormData): 
   }
   if (!category) return { ok: false, message: "Изберете категория." }
 
+  const partner = category.slug === "partneri"
+  const sponsorName = textValue(formData, "sponsor_name", 120)
+  const sponsorUrlInput = textValue(formData, "sponsor_url", 500)
+  let sponsorUrl: string | null = null
+  if (partner) {
+    if (!sponsorName) return { ok: false, message: "Въведете името на партньора." }
+    if (!/^https:\/\/\S+$/i.test(sponsorUrlInput)) {
+      return { ok: false, message: "Адресът на партньора трябва да започва с https://." }
+    }
+    sponsorUrl = sponsorUrlInput
+  }
+
   const { data: clash, error: clashError } = await admin.from("articles").select("id").eq("slug", slug).maybeSingle()
   if (clashError) return { ok: false, message: "Не успяхме да проверим адреса." }
   if (clash && clash.id !== id) return { ok: false, message: "Този адрес вече се използва." }
@@ -104,6 +116,9 @@ export async function saveArticle(_prev: ArticleFormState, formData: FormData): 
     content,
     status,
     category_id: category.id,
+    is_sponsored: partner,
+    sponsor_name: partner ? sponsorName : null,
+    sponsor_url: sponsorUrl,
     cover_url: cover,
     cover_image_url: cover,
     og_image_url: og.value,
@@ -160,6 +175,9 @@ async function writeArticle(
     const column = missing?.[1] || missing?.[2]
     if (column === "category_id") {
       return { error: "Категорията не се записа. Пуснете supabase/migrations/007_article_categories.sql в SQL Editor." }
+    }
+    if (column === "is_sponsored" || column === "sponsor_name" || column === "sponsor_url") {
+      return { error: "Пуснете supabase/migrations/010_sponsored_articles.sql в SQL Editor." }
     }
     if (!column || !(column in current)) {
       return { error: "Записът не мина. Пуснете supabase/migrations/006_articles_seo.sql в SQL Editor." }

@@ -34,6 +34,7 @@ export function accentTint(value: string | null | undefined, alpha: number) {
 }
 
 const topicBaseCounts: Record<string, number> = {
+  partneri: 0,
   "simptomi-i-sastoyaniya": 486,
   "izsledvaniya-i-podgotovka": 352,
   "detsko-zdrave": 418,

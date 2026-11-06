@@ -1,4 +1,8 @@
 import Image from "next/image"
+import Link from "next/link"
+
+import { PartnerInquiry } from "@/components/home/partner-inquiry"
+import { buttonVariants } from "@/components/ui/button"
 
 export function HomePromos() {
   return (
@@ -32,12 +36,31 @@ export function HomePromos() {
           Партньорско представяне
         </span>
       </a>
-      <aside
-        aria-label="Реклама"
-        className="glass flex h-full min-h-[260px] items-center justify-center rounded-2xl p-6"
+      <div
+        className="relative flex h-full min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-white/70 p-6 shadow-[0_12px_32px_rgb(15_118_110_/_0.1)] sm:p-8"
+        style={{ background: "linear-gradient(145deg, #f8fafc 0%, #e7f3f2 46%, #d5ebe8 100%)" }}
       >
-        <p className="text-sm text-muted-foreground">Реклама</p>
-      </aside>
+        <span aria-hidden className="pointer-events-none absolute -top-12 -right-10 size-44 rounded-full bg-[#99d5cf]/70 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-14 left-6 size-40 rounded-full bg-[#cbd5e1]/80 blur-2xl" />
+        <div className="relative max-w-sm">
+          <h2 className="text-balance text-[#0f4f4a]">Партньори</h2>
+          <p className="mt-2 leading-relaxed text-[#0f4f4a]/80">
+            Представете бранда си пред хора, които търсят лекар и здравна информация.
+          </p>
+        </div>
+        <div className="relative mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Link
+              href="/articles/category/partneri"
+              className={buttonVariants({ variant: "primary", className: "w-full sm:w-auto" })}
+            >
+              Вижте материалите
+            </Link>
+            <PartnerInquiry />
+          </div>
+          <span className="text-xs text-muted-foreground">Спонсорирано</span>
+        </div>
+      </div>
     </div>
   )
 }

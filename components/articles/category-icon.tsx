@@ -7,10 +7,12 @@ import {
   Flower2,
   HeartPulse,
   LayoutGrid,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react"
 
 const icons: { test: (slug: string) => boolean; icon: LucideIcon }[] = [
+  { test: (slug) => slug === "partneri" || slug.startsWith("partner"), icon: Megaphone },
   { test: (slug) => slug.startsWith("simptomi"), icon: HeartPulse },
   { test: (slug) => slug.startsWith("izsledvani"), icon: FlaskConical },
   { test: (slug) => slug.startsWith("detsko"), icon: Baby },
