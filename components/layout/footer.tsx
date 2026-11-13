@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 
+import { ContactModal } from "@/components/contact/contact-modal"
 import { LogoMark } from "@/components/layout/logo-mark"
 
 function SocialIcon({ children }: { children: ReactNode }) {
@@ -112,6 +113,9 @@ export function Footer() {
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             Единна платформа за лекари, заведения и здравни теми в България.
           </p>
+          <div className="mt-4">
+            <ContactModal kind="general" label="Свържете се с нас" />
+          </div>
           <ul className="mt-4 flex gap-2">
             {profiles.map((item) => (
               <li key={item.label}>
