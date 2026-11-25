@@ -2,8 +2,7 @@ export async function deliverClaimCode(email: string, code: string) {
   const apiKey = process.env.RESEND_API_KEY?.trim()
 
   if (!apiKey) {
-    console.log(`[claim] verification code for ${email}: ${code}`)
-    return { simulated: true as const }
+    throw new Error("Имейлът с кода не беше изпратен.")
   }
 
   const from = process.env.RESEND_FROM?.trim()

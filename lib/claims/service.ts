@@ -24,7 +24,6 @@ export type StartClaimResult =
       status: "code_sent"
       requestId: string
       purpose: ClaimPurpose
-      simulatedCode?: string
       message?: string
     }
   | { status: "error"; message: string }
@@ -35,6 +34,9 @@ export type ConfirmClaimResult =
   | { status: "error"; message: string }
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const maxCodeSends = 5
+const minCodeGapMs = 60_000
+const maxCodeAttempts = 5
 
 function cleanQuery(value: string) {
   return value.trim().replace(/[%_,().]/g, " ").replace(/\s+/g, " ").slice(0, 80)
@@ -248,7 +250,7 @@ async function savePendingRequest(input: {
   const admin = createAdminClient()
   const { data: existing, error: existingError } = await admin
     .from("claim_requests")
-    .select("id")
+    .select("id, code_send_count, code_sent_at")
     .eq("user_id", input.userId)
     .eq("target_type", input.targetType)
     .eq("target_id", input.targetId)
@@ -257,6 +259,14 @@ async function savePendingRequest(input: {
 
   if (existingError) return { error: existingError }
 
+  const sentAt = existing?.code_sent_at ? Date.parse(existing.code_sent_at) : 0
+  if (existing && existing.code_send_count >= maxCodeSends) {
+    return { error: "Изпратени са твърде много кодове за този профил. Опитайте по-късно." }
+  }
+  if (sentAt && Date.now() - sentAt < minCodeGapMs) {
+    return { error: "Изчакайте минута, преди да поискате нов код." }
+  }
+
   const requestId = existing?.id ?? crypto.randomUUID()
   const code = createClaimCode()
   const patch = {
@@ -264,6 +274,9 @@ async function savePendingRequest(input: {
     email_verified: false,
     code_hash: hashClaimCode(code, requestId),
     code_expires_at: claimCodeExpiry(),
+    failed_attempts: 0,
+    code_send_count: (existing?.code_send_count ?? 0) + 1,
+    code_sent_at: new Date().toISOString(),
   }
 
   if (existing) {
@@ -324,6 +337,9 @@ export async function startClaim(input: {
   const matchesAccount = emailsMatch(email, accountEmail)
 
   if (matchesListing && matchesAccount) {
+    if (!session.user.email_confirmed_at) {
+      return { status: "error", message: "Потвърдете имейла на акаунта си, преди да заявите профил." }
+    }
     const claimed = await completeClaim(
       session.user.id,
       asRole(session.profile?.role),
@@ -363,6 +379,7 @@ export async function startClaim(input: {
     email,
   })
   if ("error" in saved && saved.error) {
+    if (typeof saved.error === "string") return { status: "error", message: saved.error }
     console.error(saved.error)
     return { status: "error", message: friendlyDbError(saved.error) }
   }
@@ -371,17 +388,14 @@ export async function startClaim(input: {
   }
 
   try {
-    const delivery = await deliverClaimCode(email, saved.code)
+    await deliverClaimCode(email, saved.code)
     return {
       status: "code_sent",
       requestId: saved.requestId,
       purpose: matchesListing ? "claim" : "review",
-      simulatedCode: delivery.simulated ? saved.code : undefined,
     }
-  } catch (error) {
-    console.error(error)
-    const message = error instanceof Error ? error.message : "Имейлът с кода не беше изпратен."
-    return { status: "error", message }
+  } catch {
+    return { status: "error", message: "Имейлът с кода не беше изпратен." }
   }
 }
 
@@ -395,7 +409,7 @@ export async function confirmClaimCode(requestId: string, code: string): Promise
   const admin = createAdminClient()
   const { data: request, error } = await admin
     .from("claim_requests")
-    .select("id, user_id, target_type, target_id, email, status, code_hash, code_expires_at")
+    .select("id, user_id, target_type, target_id, email, status, code_hash, code_expires_at, failed_attempts")
     .eq("id", requestId)
     .eq("user_id", session.user.id)
     .maybeSingle()
@@ -410,8 +424,23 @@ export async function confirmClaimCode(requestId: string, code: string): Promise
   if (!request.code_expires_at || Date.parse(request.code_expires_at) < Date.now()) {
     return { status: "error", message: "Кодът е изтекъл. Изпратете нов." }
   }
+  if (request.failed_attempts >= maxCodeAttempts || !request.code_hash) {
+    return { status: "error", message: "Твърде много опити. Поискайте нов код." }
+  }
   if (!codesMatch(code.trim(), request.id, request.code_hash)) {
-    return { status: "error", message: "Кодът не е верен." }
+    const failedAttempts = request.failed_attempts + 1
+    await admin
+      .from("claim_requests")
+      .update(
+        failedAttempts >= maxCodeAttempts
+          ? { failed_attempts: failedAttempts, code_hash: null, code_expires_at: null }
+          : { failed_attempts: failedAttempts }
+      )
+      .eq("id", request.id)
+    return {
+      status: "error",
+      message: failedAttempts >= maxCodeAttempts ? "Твърде много опити. Поискайте нов код." : "Кодът не е верен.",
+    }
   }
 
   const target = await loadTarget(request.target_type, request.target_id)

@@ -4,6 +4,7 @@ import type { Database } from "@/lib/supabase/types"
 
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  // Server environment only. This module is not a client component.
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!url || !key) {

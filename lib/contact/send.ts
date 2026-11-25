@@ -33,8 +33,7 @@ export async function deliverContactMessage(input: ContactMessage) {
   const apiKey = process.env.RESEND_API_KEY?.trim()
 
   if (!apiKey) {
-    console.info(`[contact] ${subjects[input.kind]} ${input.name}\n${text}`)
-    return { simulated: true as const }
+    throw new Error("Имейлът не беше изпратен.")
   }
 
   const from = process.env.RESEND_FROM?.trim()

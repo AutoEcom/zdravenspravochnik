@@ -74,9 +74,8 @@ export async function submitContact(input: ContactInput): Promise<{ ok: true } |
       budget: kind === "partner" ? budget : "",
       message,
     })
-  } catch (error) {
-    const text = error instanceof Error ? error.message : "Имейлът не беше изпратен."
-    return { ok: false, error: text }
+  } catch {
+    return { ok: false, error: "Имейлът не беше изпратен. Опитайте отново." }
   }
 
   return { ok: true }

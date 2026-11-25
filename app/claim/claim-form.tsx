@@ -37,7 +37,6 @@ export function ClaimForm({
   const [submitting, setSubmitting] = useState(false)
   const [requestId, setRequestId] = useState<string | null>(null)
   const [purpose, setPurpose] = useState<ClaimPurpose | null>(null)
-  const [simulatedCode, setSimulatedCode] = useState<string | null>(null)
   const [code, setCode] = useState("")
   const [pendingNotice, setPendingNotice] = useState(false)
 
@@ -85,7 +84,6 @@ export function ClaimForm({
 
     setRequestId(result.requestId)
     setPurpose(result.purpose)
-    setSimulatedCode(result.simulatedCode ?? null)
     setPendingNotice(false)
     toast.success(result.purpose === "claim" ? "Изпратихме код за потвърждение." : "Изпратихме код. Заявката чака преглед след него.")
   }
@@ -194,7 +192,7 @@ export function ClaimForm({
               required
             />
             <p className="text-sm text-muted-foreground">
-              Ако съвпада с имейла в профила и с вашия акаунт, потвърждението е веднага. Иначе изпращаме 6-цифрен код.
+              Ако имейлът е потвърден в акаунта и съвпада с профила, потвърждението е веднага. Иначе изпращаме 6-цифрен код.
             </p>
           </div>
           <Button type="submit" disabled={submitting || !selected}>
@@ -214,11 +212,6 @@ export function ClaimForm({
                   : "Имейлът е различен. След кода заявката остава за одобрение от администратор."}
               </p>
             </div>
-            {simulatedCode ? (
-              <p className="rounded-xl bg-warning/15 px-3 py-2 text-sm text-warning-foreground">
-                Няма настроен имейл доставчик. Симулация, код: <strong>{simulatedCode}</strong>
-              </p>
-            ) : null}
             <div className="grid gap-2">
               <Label htmlFor="claim-code">6-цифрен код</Label>
               <Input

@@ -142,6 +142,9 @@ export type ClaimRequest = {
   email_verified: boolean
   code_hash: string | null
   code_expires_at: string | null
+  failed_attempts: number
+  code_send_count: number
+  code_sent_at: string | null
   created_at: string
 }
 
@@ -306,6 +309,9 @@ export type ClaimRequestInsert = {
   email_verified?: boolean
   code_hash?: string | null
   code_expires_at?: string | null
+  failed_attempts?: number
+  code_send_count?: number
+  code_sent_at?: string | null
   created_at?: string
 }
 
