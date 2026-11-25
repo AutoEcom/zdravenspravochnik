@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { siteConfig } from "@/lib/site"
+import { canonicalUrl, siteConfig } from "@/lib/site"
 
 type PageMetaInput = {
   title: string
@@ -19,7 +19,7 @@ export function createPageMetadata({
   index = true,
   image,
 }: PageMetaInput): Metadata {
-  const canonical = path.startsWith("/") ? path : `/${path}`
+  const canonical = canonicalUrl(path)
   const images = image ? [{ url: image, alt: title }] : undefined
 
   return {

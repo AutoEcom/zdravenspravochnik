@@ -1,18 +1,42 @@
 const canonicalSiteUrl = "https://zdravenspravochnik.com"
 
-function isLocalUrl(value: string) {
+function hostnameOf(value: string) {
   try {
-    const host = new URL(value).hostname
-    return host === "localhost" || host === "127.0.0.1"
+    return new URL(value).hostname
   } catch {
-    return true
+    return ""
   }
+}
+
+function isLocalHost(hostname: string) {
+  return hostname === "localhost" || hostname === "127.0.0.1"
+}
+
+function isPreviewHost(hostname: string) {
+  return hostname === "vercel.app" || hostname.endsWith(".vercel.app")
+}
+
+function isUnsafeOrigin(value: string) {
+  const hostname = hostnameOf(value)
+  return !hostname || isLocalHost(hostname) || isPreviewHost(hostname)
+}
+
+export function canonicalOrigin() {
+  return canonicalSiteUrl
+}
+
+export function canonicalUrl(path: string) {
+  const normalized = path.startsWith("/") ? path : `/${path}`
+  return new URL(normalized, canonicalSiteUrl).toString()
 }
 
 function configuredSiteUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "")
   const production = process.env.NODE_ENV === "production"
-  if (configured && !(production && isLocalUrl(configured))) return configured
+  if (configured && !isUnsafeOrigin(configured)) {
+    const hostname = hostnameOf(configured)
+    if (hostname === "zdravenspravochnik.com" || hostname === "www.zdravenspravochnik.com") return canonicalSiteUrl
+  }
   if (production) return canonicalSiteUrl
   return configured || "http://localhost:3000"
 }
@@ -27,11 +51,15 @@ export const siteConfig = {
 export function siteOrigin() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "")
   const production = process.env.NODE_ENV === "production"
-  if (configured && !(production && isLocalUrl(configured))) return configured
-  if (typeof window !== "undefined" && !(production && isLocalUrl(window.location.origin))) {
+  if (configured && !isUnsafeOrigin(configured)) {
+    const hostname = hostnameOf(configured)
+    if (hostname === "zdravenspravochnik.com" || hostname === "www.zdravenspravochnik.com") return canonicalSiteUrl
+  }
+  if (typeof window !== "undefined" && !production && isLocalHost(hostnameOf(window.location.origin))) {
     return window.location.origin.replace(/\/$/, "")
   }
-  return production ? canonicalSiteUrl : configured || "http://localhost:3000"
+  if (production) return canonicalSiteUrl
+  return configured && isLocalHost(hostnameOf(configured)) ? configured : "http://localhost:3000"
 }
 
 export function absoluteUrl(path: string) {

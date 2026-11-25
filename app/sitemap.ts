@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 import { createClient } from "@supabase/supabase-js"
 
 import { isLegacyArticle } from "@/lib/content/article-path"
-import { absoluteUrl } from "@/lib/site"
+import { canonicalUrl } from "@/lib/site"
 import type { Database } from "@/lib/supabase/types"
 
 const staticPaths = [
@@ -42,7 +42,7 @@ async function publishedPaths(table: "doctors" | "facilities", prefix: string) {
       .range(from, from + pageSize - 1)
     if (error || !data?.length) break
     for (const row of data) {
-      if (row.slug) paths.push({ path: `${prefix}${row.slug}`, updated: row.updated_at })
+      if (row.slug) paths.push({ path: `${prefix}${encodeURIComponent(row.slug)}`, updated: row.updated_at })
     }
     if (data.length < pageSize) break
     from += pageSize
@@ -104,7 +104,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const seen = new Set<string>()
   const entries: MetadataRoute.Sitemap = staticPaths.map((path) => ({
-    url: absoluteUrl(path),
+    url: canonicalUrl(path),
     changeFrequency: path === "/" ? "daily" : "weekly",
     priority: path === "/" ? 1 : 0.7,
   }))
@@ -114,7 +114,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (seen.has(item.path)) continue
     seen.add(item.path)
     entries.push({
-      url: absoluteUrl(item.path),
+      url: canonicalUrl(item.path),
       lastModified: item.updated ? new Date(item.updated) : undefined,
       changeFrequency: "weekly",
       priority: item.path.startsWith("/articles/") ? 0.6 : 0.5,

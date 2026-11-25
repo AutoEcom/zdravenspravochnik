@@ -8,7 +8,7 @@ import { getSessionProfile } from "@/lib/auth/session"
 import { articlePublicPath } from "@/lib/content/article-path"
 import { articleOgImage } from "@/lib/content/slug"
 import { getArticleCatalog, getRelatedArticles } from "@/lib/supabase/queries"
-import { siteConfig } from "@/lib/site"
+import { canonicalUrl, siteConfig } from "@/lib/site"
 import type { Article } from "@/types/database"
 
 export function articlePageMetadata(article: Article): Metadata {
@@ -31,7 +31,7 @@ export function articlePageMetadata(article: Article): Metadata {
     openGraph: {
       title,
       description,
-      url: path,
+      url: canonicalUrl(path),
       siteName: siteConfig.name,
       locale: "bg_BG",
       type: "article",

@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
+const legacyCategoryRedirects = [
+  ["/category/specialisti", "/specialisti"],
+  ["/category/zdravni-zavedenia", "/zavedenia"],
+  ["/category/полезно-диети-лекарства-съвети", "/articles"],
+] as const
+
 const nextConfig: NextConfig = {
+  skipTrailingSlashRedirect: true,
   images: {
     remotePatterns: [
       {
@@ -20,13 +27,39 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async rewrites() {
+  async redirects() {
+    const category = legacyCategoryRedirects.flatMap(([source, destination]) => {
+      const encoded = source
+        .split("/")
+        .map((segment) => encodeURIComponent(segment))
+        .join("/")
+      const sources = encoded === source ? [source] : [source, encoded]
+      return sources.flatMap((item) => [
+        { source: item, destination, statusCode: 301 },
+        { source: `${item}/`, destination, statusCode: 301 },
+      ])
+    })
     return [
-      {
-        source: "/wp-content/uploads/:path*",
-        destination: "https://media.zdravenspravochnik.com/:path*",
-      },
-    ];
+      { source: "/sitemap_index.xml", destination: "https://zdravenspravochnik.com/sitemap.xml", statusCode: 301 },
+      { source: "/sitemap_index.xml/", destination: "https://zdravenspravochnik.com/sitemap.xml", statusCode: 301 },
+      ...category,
+    ]
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/:path*/",
+          destination: "/:path*",
+        },
+      ],
+      afterFiles: [
+        {
+          source: "/wp-content/uploads/:path*",
+          destination: "https://media.zdravenspravochnik.com/:path*",
+        },
+      ],
+    }
   },
   async headers() {
     return [

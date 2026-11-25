@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { JsonLd } from "@/components/seo/json-ld"
 import { organizationJsonLd } from "@/components/seo/schemas"
 import { Toaster } from "@/components/ui/sonner"
-import { siteConfig } from "@/lib/site"
+import { canonicalOrigin, siteConfig } from "@/lib/site"
 
 import "./globals.css"
 
@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  metadataBase: new URL(canonicalOrigin()),
   title: {
     default: siteConfig.name,
     template: `%s | ${siteConfig.name}`,
