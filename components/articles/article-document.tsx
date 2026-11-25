@@ -8,7 +8,6 @@ import { getSessionProfile } from "@/lib/auth/session"
 import { articlePublicPath } from "@/lib/content/article-path"
 import { articleOgImage } from "@/lib/content/slug"
 import { getArticleCatalog, getRelatedArticles } from "@/lib/supabase/queries"
-import { canonicalUrl, siteConfig } from "@/lib/site"
 import type { Article } from "@/types/database"
 
 export function articlePageMetadata(article: Article): Metadata {
@@ -19,31 +18,21 @@ export function articlePageMetadata(article: Article): Metadata {
     article.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
   const image = articleOgImage(article)
   const path = articlePublicPath(article)
+  const metadata = createPageMetadata({
+    title,
+    description,
+    path,
+    image,
+    absoluteTitle: Boolean(article.meta_title?.trim()),
+    type: "article",
+  })
 
   return {
-    ...createPageMetadata({
-      title,
-      description,
-      path,
-      image,
-      absoluteTitle: Boolean(article.meta_title?.trim()),
-    }),
+    ...metadata,
     openGraph: {
-      title,
-      description,
-      url: canonicalUrl(path),
-      siteName: siteConfig.name,
-      locale: "bg_BG",
-      type: "article",
+      ...metadata.openGraph,
       publishedTime: article.published_at ?? undefined,
       modifiedTime: article.updated_at,
-      images: image ? [{ url: image, alt: article.title }] : undefined,
-    },
-    twitter: {
-      card: image ? "summary_large_image" : "summary",
-      title,
-      description,
-      images: image ? [image] : undefined,
     },
   }
 }

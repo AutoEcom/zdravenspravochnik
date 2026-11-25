@@ -3,7 +3,8 @@ import type { Article, Doctor, Facility } from "@/types/database"
 import { cleanDisplayName } from "@/lib/content/display-name"
 import { openingHoursSpecification } from "@/lib/content/present"
 import { articlePublicPath } from "@/lib/content/article-path"
-import { absoluteUrl, siteConfig } from "@/lib/site"
+import { defaultOgImagePath } from "@/components/seo/page-meta"
+import { absoluteUrl, canonicalUrl, siteConfig } from "@/lib/site"
 
 function defined<T extends Record<string, unknown>>(value: T) {
   return Object.fromEntries(
@@ -50,7 +51,10 @@ export function organizationJsonLd() {
     "@type": "Organization",
     name: siteConfig.name,
     url: siteConfig.url,
-    logo: absoluteUrl("/logo-mark.svg"),
+    logo: {
+      "@type": "ImageObject",
+      url: canonicalUrl("/logo.png"),
+    },
   }
 }
 
@@ -181,7 +185,7 @@ export function articleJsonLd(article: Article, cover: string | null, section?: 
     description: article.meta_description || article.excerpt || body.slice(0, 160),
     articleSection: section || undefined,
     articleBody: body,
-    image: cover ? [cover] : undefined,
+    image: [cover || canonicalUrl(defaultOgImagePath)],
     datePublished: article.published_at,
     dateModified: article.updated_at,
     inLanguage: "bg-BG",
@@ -199,6 +203,10 @@ export function articleJsonLd(article: Article, cover: string | null, section?: 
       "@type": "Organization",
       name: siteConfig.name,
       url: siteConfig.url,
+      logo: {
+        "@type": "ImageObject",
+        url: canonicalUrl("/logo.png"),
+      },
     },
   })
 }

@@ -102,6 +102,7 @@ export async function generateMetadata({
     description: descriptionFor(match),
     path: `/${slug}`,
     image,
+    type: match.kind === "doctor" ? "profile" : "website",
   })
 }
 

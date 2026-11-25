@@ -6,8 +6,8 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/articles", "/articles/", "/specialisti", "/zavedenia", "/search"],
-      disallow: ["/admin", "/dashboard", "/login", "/claim", "/auth"],
+      allow: "/",
+      disallow: ["/admin", "/dashboard", "/api", "/login", "/claim", "/auth"],
     },
     sitemap: canonicalUrl("/sitemap.xml"),
     host: canonicalOrigin(),

@@ -29,9 +29,22 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   applicationName: siteConfig.name,
   openGraph: {
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: canonicalOrigin(),
     siteName: siteConfig.name,
     locale: "bg_BG",
     type: "website",
+    images: [{ url: "/og-default.png", alt: siteConfig.name }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: ["/og-default.png"],
+  },
+  verification: {
+    google: "C-WXP-NzFKnppz1Nh_kQhNKARmpHXziyI3jrr_bONYk",
   },
 }
 

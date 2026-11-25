@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 
 import { canonicalUrl, siteConfig } from "@/lib/site"
 
+export const defaultOgImagePath = "/og-default.png"
+
 type PageMetaInput = {
   title: string
   description: string
@@ -9,6 +11,7 @@ type PageMetaInput = {
   absoluteTitle?: boolean
   index?: boolean
   image?: string | null
+  type?: "website" | "article" | "profile"
 }
 
 export function createPageMetadata({
@@ -18,9 +21,11 @@ export function createPageMetadata({
   absoluteTitle = false,
   index = true,
   image,
+  type = "website",
 }: PageMetaInput): Metadata {
   const canonical = canonicalUrl(path)
-  const images = image ? [{ url: image, alt: title }] : undefined
+  const ogImage = image?.trim() || defaultOgImagePath
+  const images = [{ url: ogImage, alt: title }]
 
   return {
     title: absoluteTitle ? { absolute: title } : title,
@@ -38,14 +43,14 @@ export function createPageMetadata({
       url: canonical,
       siteName: siteConfig.name,
       locale: "bg_BG",
-      type: "website",
+      type,
       images,
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
-      images: image ? [image] : undefined,
+      images: [ogImage],
     },
   }
 }
