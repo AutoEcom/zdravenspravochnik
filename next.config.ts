@@ -42,6 +42,10 @@ const nextConfig: NextConfig = {
     return [
       { source: "/sitemap_index.xml", destination: "https://zdravenspravochnik.com/sitemap.xml", statusCode: 301 },
       { source: "/sitemap_index.xml/", destination: "https://zdravenspravochnik.com/sitemap.xml", statusCode: 301 },
+      { source: "/own-search", destination: "/search", permanent: true },
+      { source: "/own-search/", destination: "/search", permanent: true },
+      { source: "/tag/:slug", destination: "/specialisti", permanent: true },
+      { source: "/tag/:slug/", destination: "/specialisti", permanent: true },
       ...category,
     ]
   },

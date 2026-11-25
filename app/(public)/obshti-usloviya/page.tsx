@@ -1,7 +1,8 @@
 import Link from "next/link"
 
-import { FillIn, LegalDocument } from "@/components/legal/legal-document"
+import { LegalDocument } from "@/components/legal/legal-document"
 import { createPageMetadata } from "@/components/seo/page-meta"
+import { operator } from "@/lib/operator"
 
 export const metadata = createPageMetadata({
   title: "Общи условия",
@@ -16,9 +17,9 @@ export default function TermsPage() {
       <section className="flex flex-col gap-3">
         <h2>1. Оператор</h2>
         <p>
-          Сайтът zdravenspravochnik.com („Здравен справочник“) се оперира от Calma Life,{" "}
-          <FillIn label="ЕИК" />, със седалище <FillIn label="адрес" />. За въпроси по тези условия:{" "}
-          <FillIn label="имейл" />.
+          Сайтът zdravenspravochnik.com („Здравен справочник“) се оперира от {operator.name}, със седалище{" "}
+          {operator.address}. За въпроси по тези условия:{" "}
+          <a href={`mailto:${operator.email}`}>{operator.email}</a>.
         </p>
       </section>
       <section className="flex flex-col gap-3">

@@ -2,6 +2,7 @@ import Link from "next/link"
 
 import { LegalDocument } from "@/components/legal/legal-document"
 import { createPageMetadata } from "@/components/seo/page-meta"
+import { operator } from "@/lib/operator"
 
 export const metadata = createPageMetadata({
   title: "Политика за бисквитки",
@@ -17,7 +18,8 @@ export default function CookiesPage() {
         <h2>1. Какво са бисквитките</h2>
         <p>
           Бисквитките са малки файлове или записи в браузъра. Те позволяват сайтът да помни сесия или избор.
-          Здравен справочник се оперира от Calma Life на zdravenspravochnik.com.
+          Здравен справочник се оперира от {operator.name}, {operator.address}, на zdravenspravochnik.com.
+          Имейл: <a href={`mailto:${operator.email}`}>{operator.email}</a>.
         </p>
       </section>
       <section className="flex flex-col gap-3">

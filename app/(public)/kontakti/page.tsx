@@ -1,7 +1,7 @@
 import { ContactForm } from "@/components/contact/contact-form"
-import { FillIn } from "@/components/legal/legal-document"
 import { createPageMetadata } from "@/components/seo/page-meta"
 import { GlassCard } from "@/components/ui/glass-card"
+import { operator } from "@/lib/operator"
 
 export const metadata = createPageMetadata({
   title: "Контакти",
@@ -22,21 +22,17 @@ export default function ContactPage() {
       <GlassCard variant="panel" className="grid gap-3 text-sm">
         <p>
           <span className="text-muted-foreground">Имейл · </span>
-          <a className="font-medium text-primary hover:underline" href="mailto:hello@zdravenspravochnik.bg">
-            hello@zdravenspravochnik.bg
+          <a className="font-medium text-primary hover:underline" href={`mailto:${operator.email}`}>
+            {operator.email}
           </a>
         </p>
         <p>
           <span className="text-muted-foreground">Оператор · </span>
-          Calma Life
-        </p>
-        <p>
-          <span className="text-muted-foreground">ЕИК · </span>
-          <FillIn label="ЕИК" />
+          {operator.name}
         </p>
         <p>
           <span className="text-muted-foreground">Адрес · </span>
-          <FillIn label="адрес" />
+          {operator.address}
         </p>
       </GlassCard>
       <GlassCard variant="panel">

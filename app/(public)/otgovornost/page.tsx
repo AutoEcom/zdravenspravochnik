@@ -1,4 +1,5 @@
-import { FillIn, LegalDocument } from "@/components/legal/legal-document"
+import { LegalDocument } from "@/components/legal/legal-document"
+import { operator } from "@/lib/operator"
 import { createPageMetadata } from "@/components/seo/page-meta"
 
 export const metadata = createPageMetadata({
@@ -50,7 +51,7 @@ export default function DisclaimerPage() {
       <section className="flex flex-col gap-3">
         <h2>6. Контакт</h2>
         <p>
-          Calma Life, <FillIn label="ЕИК" />, <FillIn label="адрес" />. Имейл: <FillIn label="имейл" />.
+          {operator.name}, {operator.address}. Имейл: <a href={`mailto:${operator.email}`}>{operator.email}</a>.
         </p>
       </section>
     </LegalDocument>

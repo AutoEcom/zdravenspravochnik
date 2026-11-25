@@ -17,6 +17,7 @@ import { createPageMetadata } from "@/components/seo/page-meta"
 import { breadcrumbJsonLd } from "@/components/seo/schemas"
 import { buttonVariants } from "@/components/ui/button"
 import { GlassCard } from "@/components/ui/glass-card"
+import { operator } from "@/lib/operator"
 
 export const metadata = createPageMetadata({
   title: "За нас",
@@ -240,7 +241,13 @@ export default function AboutPage() {
       <div className="flex flex-col gap-3 border-t border-slate-200/80 pt-8 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex max-w-2xl gap-3 text-sm leading-relaxed text-muted-foreground">
           <Building2 className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>Имаме опит с медицински уеб — сайтове и съдържание за практики и здравни марки.</span>
+          <span>
+            Имаме опит с медицински уеб — сайтове и съдържание за практики и здравни марки. Оператор:{" "}
+            {operator.name}, {operator.address}.{" "}
+            <a href={`mailto:${operator.email}`} className="font-medium text-primary underline-offset-4 hover:underline">
+              {operator.email}
+            </a>
+          </span>
         </p>
         <ContactModal kind="about" label="Свържете се с нас" />
       </div>

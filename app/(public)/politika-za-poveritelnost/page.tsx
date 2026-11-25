@@ -1,7 +1,8 @@
 import Link from "next/link"
 
-import { FillIn, LegalDocument } from "@/components/legal/legal-document"
+import { LegalDocument } from "@/components/legal/legal-document"
 import { createPageMetadata } from "@/components/seo/page-meta"
+import { operator } from "@/lib/operator"
 
 export const metadata = createPageMetadata({
   title: "Политика за поверителност",
@@ -16,8 +17,8 @@ export default function PrivacyPage() {
       <section className="flex flex-col gap-3">
         <h2>1. Администратор</h2>
         <p>
-          Администратор на лични данни за zdravenspravochnik.com е Calma Life, <FillIn label="ЕИК" />,{" "}
-          <FillIn label="адрес" />. Контакт за поверителност: <FillIn label="имейл" />.
+          Администратор на лични данни за zdravenspravochnik.com е {operator.name}, {operator.address}. Контакт
+          за поверителност: <a href={`mailto:${operator.email}`}>{operator.email}</a>.
         </p>
       </section>
       <section className="flex flex-col gap-3">

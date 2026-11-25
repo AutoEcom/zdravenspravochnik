@@ -1,12 +1,6 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 
-export function FillIn({ label }: { label: string }) {
-  return (
-    <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-foreground">[ПОПЪЛНИ: {label}]</span>
-  )
-}
-
 export function LegalDocument({
   title,
   updated,

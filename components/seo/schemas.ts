@@ -4,6 +4,7 @@ import { cleanDisplayName } from "@/lib/content/display-name"
 import { openingHoursSpecification } from "@/lib/content/present"
 import { articlePublicPath } from "@/lib/content/article-path"
 import { defaultOgImagePath } from "@/components/seo/page-meta"
+import { operator } from "@/lib/operator"
 import { absoluteUrl, canonicalUrl, siteConfig } from "@/lib/site"
 
 function defined<T extends Record<string, unknown>>(value: T) {
@@ -50,7 +51,15 @@ export function organizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteConfig.name,
+    legalName: operator.name,
     url: siteConfig.url,
+    email: operator.email,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "София",
+      postalCode: "1000",
+      addressCountry: "BG",
+    },
     logo: {
       "@type": "ImageObject",
       url: canonicalUrl("/logo.png"),

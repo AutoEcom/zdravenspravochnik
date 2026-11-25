@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { ContactModal } from "@/components/contact/contact-modal"
 import { LogoMark } from "@/components/layout/logo-mark"
+import { operator } from "@/lib/operator"
 
 function SocialIcon({ children }: { children: ReactNode }) {
   return (
@@ -138,7 +139,12 @@ export function Footer() {
       </div>
       <div className="border-t border-slate-200/80">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
-          <p className="text-sm text-muted-foreground">© {year} Здравен справочник · Calma Life</p>
+          <p className="text-sm text-muted-foreground">
+            © {year} Здравен справочник · {operator.name} · {operator.address} ·{" "}
+            <a href={`mailto:${operator.email}`} className="underline-offset-4 hover:underline">
+              {operator.email}
+            </a>
+          </p>
           <p className="max-w-3xl text-xs leading-relaxed text-slate-500">
             Здравен справочник е информационен справочник, а не медицинска услуга. Не поставяме диагноза,
             не предписваме лечение и не препоръчваме конкретен специалист или заведение. Данните могат да са
