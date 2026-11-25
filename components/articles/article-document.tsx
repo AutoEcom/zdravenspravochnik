@@ -31,6 +31,7 @@ export function articlePageMetadata(article: Article): Metadata {
     ...metadata,
     openGraph: {
       ...metadata.openGraph,
+      type: "article",
       publishedTime: article.published_at ?? undefined,
       modifiedTime: article.updated_at,
     },
