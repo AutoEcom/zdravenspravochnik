@@ -40,12 +40,6 @@ const nextConfig: NextConfig = {
       ])
     })
     return [
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.zdravenspravochnik.com" }],
-        destination: "https://zdravenspravochnik.com/:path*",
-        statusCode: 301,
-      },
       { source: "/sitemap_index.xml", destination: "https://zdravenspravochnik.com/sitemap.xml", statusCode: 301 },
       { source: "/sitemap_index.xml/", destination: "https://zdravenspravochnik.com/sitemap.xml", statusCode: 301 },
       { source: "/own-search", destination: "/search", permanent: true },
